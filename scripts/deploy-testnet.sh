@@ -2,7 +2,7 @@
 set -euo pipefail
 
 ACCOUNT="${LIMEB_ACCOUNT:-1aa2aa3aa4wr}"
-RPC="${ULTRA_TESTNET_RPC:-https://test.ultra.eosusa.io}"
+RPC="${ULTRA_TESTNET_RPC:-https://ultra-testnet.eosphere.io}"
 CONTRACT_DIR="${CONTRACT_DIR:-contracts/limeb}"
 
 WASM="$CONTRACT_DIR/limeb.wasm"
