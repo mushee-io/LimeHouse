@@ -1,0 +1,45 @@
+name: Ultra Contract
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "contracts/**"
+      - "scripts/build-contract.sh"
+      - ".github/workflows/contract.yml"
+  pull_request:
+    branches: [main]
+    paths:
+      - "contracts/**"
+      - "scripts/build-contract.sh"
+      - ".github/workflows/contract.yml"
+
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Pull Ultra developer tools
+        run: docker pull quay.io/ultra.io/3rdparty-devtools:latest
+
+      - name: Compile Lime B contract
+        run: |
+          docker run --rm \
+            -v "$PWD:/opt/ultra_workdir/LimeHouse" \
+            quay.io/ultra.io/3rdparty-devtools:latest \
+            bash -lc 'cd /opt/ultra_workdir/LimeHouse/contracts/limeb && cdt-cpp -o limeb.wasm limeb.cpp'
+
+      - name: Verify ABI and WASM
+        run: |
+          test -s contracts/limeb/limeb.wasm
+          test -s contracts/limeb/limeb.abi
+
+      - name: Upload compiled contract
+        uses: actions/upload-artifact@v4
+        with:
+          name: limeb-ultra-contract
+          path: |
+            contracts/limeb/limeb.wasm
+            contracts/limeb/limeb.abi
