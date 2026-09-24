@@ -59,4 +59,4 @@ Set `NEXT_PUBLIC_LIMEB_CONTRACT` only after the AMM contract is deployed. The ap
 
 ## Brand
 
-**Lime B** — native liquidity for Ultra.
+**Lime B** — native liquidity for Ultra.\n\nBuilds are verified with GitHub Actions.
