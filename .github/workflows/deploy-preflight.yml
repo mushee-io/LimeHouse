@@ -15,16 +15,35 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Verify Ultra Testnet account
+      - name: Verify Ultra Testnet account and RAM
         run: |
-          RESPONSE=$(curl --fail-with-body -sS -X POST \
+          curl --fail-with-body -sS -X POST \
             https://ultra-testnet.eosphere.io/v1/chain/get_account \
             -H 'Content-Type: application/json' \
-            -d '{"account_name":"1aa2aa3aa4wr"}')
-          echo "$RESPONSE" | python3 -m json.tool
-          echo "$RESPONSE" | grep -q '"account_name": "1aa2aa3aa4wr"'
+            -d '{"account_name":"1aa2aa3aa4wr"}' > /tmp/limeb-account.json
 
-      - name: Verify compiled contract artifact source
+          python3 - <<'PY'
+          import json, sys
+          data = json.load(open("/tmp/limeb-account.json"))
+          account = data.get("account_name")
+          balance = data.get("core_liquid_balance")
+          ram = int(data.get("ram_quota", 0))
+          last_code_update = data.get("last_code_update")
+
+          print(f"Account: {account}")
+          print(f"Balance: {balance}")
+          print(f"RAM quota: {ram} bytes")
+          print(f"Last code update: {last_code_update}")
+
+          if account != "1aa2aa3aa4wr":
+              raise SystemExit("Unexpected Ultra account response")
+          if ram <= 0:
+              raise SystemExit(
+                  "Lime B account has 0 RAM. Buy Ultra Testnet RAM before contract deployment."
+              )
+          PY
+
+      - name: Verify contract source
         run: |
           test -s contracts/limeb/limeb.cpp
           grep -q 'CONTRACT limeb' contracts/limeb/limeb.cpp
