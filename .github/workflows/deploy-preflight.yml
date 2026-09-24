@@ -1,0 +1,52 @@
+name: Ultra Deployment Preflight
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "scripts/deploy-testnet.sh"
+      - ".github/workflows/deploy-preflight.yml"
+  workflow_dispatch:
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify Ultra Testnet account
+        run: |
+          RESPONSE=$(curl --fail-with-body -sS -X POST \
+            https://ultra-testnet.eosphere.io/v1/chain/get_account \
+            -H 'Content-Type: application/json' \
+            -d '{"account_name":"1aa2aa3aa4wr"}')
+          echo "$RESPONSE" | python3 -m json.tool
+          echo "$RESPONSE" | grep -q '"account_name": "1aa2aa3aa4wr"'
+
+      - name: Verify compiled contract artifact source
+        run: |
+          test -s contracts/limeb/limeb.cpp
+          grep -q 'CONTRACT limeb' contracts/limeb/limeb.cpp
+
+      - name: Pull Ultra developer tools
+        run: docker pull quay.io/ultra.io/3rdparty-devtools:latest
+
+      - name: Compile deployable WASM and ABI
+        run: |
+          docker run --rm \
+            --entrypoint /bin/bash \
+            -v "$PWD:/opt/ultra_workdir/LimeHouse" \
+            quay.io/ultra.io/3rdparty-devtools:latest \
+            -lc 'cd /opt/ultra_workdir/LimeHouse/contracts/limeb && cdt-cpp -o limeb.wasm limeb.cpp'
+          test -s contracts/limeb/limeb.wasm
+          test -s contracts/limeb/limeb.abi
+
+      - name: Upload deployable bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: limeb-testnet-deploy-bundle
+          path: |
+            contracts/limeb/limeb.wasm
+            contracts/limeb/limeb.abi
+            scripts/deploy-testnet.sh
