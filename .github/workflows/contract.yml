@@ -27,9 +27,10 @@ jobs:
       - name: Compile Lime B contract
         run: |
           docker run --rm \
+            --entrypoint /bin/bash \
             -v "$PWD:/opt/ultra_workdir/LimeHouse" \
             quay.io/ultra.io/3rdparty-devtools:latest \
-            bash -lc 'cd /opt/ultra_workdir/LimeHouse/contracts/limeb && cdt-cpp -o limeb.wasm limeb.cpp'
+            -lc 'cd /opt/ultra_workdir/LimeHouse/contracts/limeb && cdt-cpp -o limeb.wasm limeb.cpp'
 
       - name: Verify ABI and WASM
         run: |
