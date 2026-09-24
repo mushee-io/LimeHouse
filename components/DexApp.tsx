@@ -176,7 +176,7 @@ export default function DexApp() {
       return;
     }
 
-    const contract = process.env.NEXT_PUBLIC_LIMEB_CONTRACT || ".1aa2aa3aa4wr";
+    const contract = process.env.NEXT_PUBLIC_LIMEB_CONTRACT || "1aa2aa3aa4wr";
     if (!contract) {
       setNotice("Wallet connected. Lime B AMM execution will unlock after the pool contract is deployed and NEXT_PUBLIC_LIMEB_CONTRACT is configured.");
       return;
