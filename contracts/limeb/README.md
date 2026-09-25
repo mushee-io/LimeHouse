@@ -2,6 +2,16 @@
 
 This is the on-chain liquidity engine for Lime B on Ultra.
 
+## Current Ultra Testnet deployment
+
+- Contract account: `1aa2aa3aa4wr`
+- Network: Ultra Testnet
+- Pool 0 pair: `8,UOS / 6,USDT`
+- Pool fee: `30` bps (0.30%)
+- Token contract: `eosio.token`
+
+Both UOS and USDT have been verified on Ultra Testnet's `eosio.token` contract. USDC and LIME are not currently defined there, so Lime B does not advertise those pairs as live pools.
+
 ## What it does
 
 - receives fungible-token deposits through `eosio.token::transfer`
@@ -18,7 +28,7 @@ This is the on-chain liquidity engine for Lime B on Ultra.
 
 ## Atomic user flow
 
-Ultra Wallet supports multiple actions in one transaction. A swap is therefore:
+Ultra Wallet supports multiple actions in one transaction. A swap is:
 
 1. `eosio.token::transfer` from the user to the Lime B contract
 2. `limeb::swap` using that credited amount
@@ -44,40 +54,61 @@ docker run --rm \
   bash -lc 'cd /opt/ultra_workdir/LimeHouse/contracts/limeb && cdt-cpp -o limeb.wasm limeb.cpp'
 ```
 
-This should produce:
+This produces:
 
 - `limeb.wasm`
 - `limeb.abi`
 
 ## Deploy to Ultra Testnet
 
-Deploy the generated WASM + ABI to a funded Ultra developer Testnet account using the Ultra Smart Contract VS Code extension or `cleos`.
+Deploy the generated WASM + ABI to the contract account using the Ultra Smart Contract VS Code extension or `cleos`.
 
-After deployment, allow the contract code to send inline transfers:
-
-```bash
-cleos -u <ULTRA_TESTNET_RPC> set account permission <CONTRACT_ACCOUNT> active --add-code
-```
-
-Then create the first pool. Example for a UOS token with 8 decimals and a hypothetical 6-decimal USDC token:
+The contract account needs `eosio.code` on its active authority so inline `eosio.token::transfer` payouts can execute:
 
 ```bash
-cleos -u <ULTRA_TESTNET_RPC> push action <CONTRACT_ACCOUNT> createpool '["8,UOS","6,USDC",30]' -p <CONTRACT_ACCOUNT>@active
+cleos -u https://ultra-testnet.eosphere.io \
+  set account permission 1aa2aa3aa4wr active --add-code \
+  -p 1aa2aa3aa4wr@owner
 ```
 
-Do not reuse the example USDC precision unless it matches the actual Ultra Testnet token you intend to list.
+The currently deployed account already has this permission.
+
+## Create Pool 0
+
+From the repository, with the contract key loaded in an unlocked local cleos wallet:
+
+```bash
+bash scripts/create-pool0.sh
+```
+
+That script validates both Testnet token definitions and submits:
+
+```bash
+cleos -u https://ultra-testnet.eosphere.io \
+  push action 1aa2aa3aa4wr createpool \
+  '["8,UOS","6,USDT",30]' \
+  -p 1aa2aa3aa4wr@active
+```
+
+It then reads the `pools` table back from chain.
+
+## Initial liquidity
+
+After Pool 0 exists, the initial LP must transfer both assets to the contract and call `addliq` in the same transaction or as deposits followed by `addliq`.
+
+The contract will not invent test balances. The LP account must actually hold both UOS and USDT on `eosio.token`.
 
 ## Swap action example
 
-Assume pool 0 is UOS/USDC and the user has deposited 1 UOS:
+Assume Pool 0 has liquidity and the user has deposited 1 UOS:
 
 ```bash
-cleos -u <ULTRA_TESTNET_RPC> push action <CONTRACT_ACCOUNT> swap \
-  '["useraccount",0,"1.00000000 UOS","0.000001 USDC"]' \
+cleos -u https://ultra-testnet.eosphere.io push action 1aa2aa3aa4wr swap \
+  '["useraccount",0,"1.00000000 UOS","0.000001 USDT"]' \
   -p useraccount@active
 ```
 
-In the web app this call is paired atomically with the preceding token transfer.
+The web app now constructs the transfer + swap atomically through the Ultra Wallet SDK and calculates the quote from the live Pool 0 reserves.
 
 ## Security model
 
