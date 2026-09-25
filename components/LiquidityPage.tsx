@@ -3,41 +3,36 @@ import Link from "next/link";
 
 export default function LiquidityPage() {
   return (
-    <main className="app-page liquidity-page">
-      <div className="app-top-strip acid">
-        <span>LIME B LIQUIDITY</span>
-        <span>Ultra Testnet</span>
-        <span>Pool 0 · UOS / LIME</span>
-      </div>
+    <main className="lb-app-shell">
+      <div className="lb-texture" aria-hidden="true" />
       <AppHeader />
 
-      <section className="liquidity-hero">
-        <div>
-          <span className="eyebrow dot">Provide on Ultra</span>
-          <h1>PUT CAPITAL<br />TO WORK</h1>
-          <p>Manage liquidity for Lime B pools through a clean, transparent LP experience.</p>
+      <section className="lb-liquidity-stage">
+        <div className="lb-section-intro">
+          <span>Liquidity on Ultra</span>
+          <h1>Put capital to work.</h1>
+          <p>Fund the live UOS / LIME pool and manage LimeBay liquidity without dashboard clutter.</p>
         </div>
-        <div className="liquidity-art" aria-hidden="true">
-          <div className="liquid-pillar p1" />
-          <div className="liquid-pillar p2" />
-          <div className="liquid-pillar p3" />
+
+        <div className="lb-liquidity-cards">
+          <article className="primary">
+            <span>Pool 0</span>
+            <strong>UOS / LIME</strong>
+            <p>Live on Ultra Testnet with atomic deposit, LP minting and 0.30% execution fees.</p>
+            <div>
+              <Link href="/pools">Explore pool</Link>
+              <Link href="/trade">Trade pair</Link>
+            </div>
+          </article>
+          <article><span>Execution</span><strong>Atomic</strong><p>Deposit and protocol action settle together.</p></article>
+          <article><span>Network</span><strong>Ultra</strong><p>Native testnet execution and Ultra Wallet signing.</p></article>
         </div>
       </section>
 
-      <section className="liquidity-grid">
-        <article className="liquidity-primary">
-          <span className="eyebrow">Pool 0</span>
-          <h2>UOS / LIME</h2>
-          <p>The first Lime B pool is funded and live on Ultra Testnet.</p>
-          <div className="liquidity-actions">
-            <Link href="/pools" className="acid-button">View pool →</Link>
-            <Link href="/swap" className="outline-button">Swap assets</Link>
-          </div>
-        </article>
-        <article><strong>0.30%</strong><span>Pool fee</span></article>
-        <article><strong>ATOMIC</strong><span>Deposit + LP mint</span></article>
-        <article><strong>ULTRA</strong><span>Native execution</span></article>
-      </section>
+      <footer className="lb-app-footer">
+        <div><strong>LimeBay</strong><span>Liquidity infrastructure for Ultra.</span></div>
+        <div><span>Pool 0</span><span>0.30% fee</span><span>© 2026 LimeBay</span></div>
+      </footer>
     </main>
   );
 }
