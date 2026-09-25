@@ -2,43 +2,28 @@ import AppHeader from "@/components/AppHeader";
 
 export default function GovernancePage() {
   return (
-    <main className="app-page governance-page">
-      <div className="app-top-strip governance">
-        <span>Lime B is live on Ultra</span>
-        <span>Community · Liquidity · Ecosystem</span>
-        <span>Governance preview</span>
-      </div>
+    <main className="lb-app-shell">
+      <div className="lb-texture" aria-hidden="true" />
       <AppHeader />
 
-      <div className="governance-tabs">
-        <button className="active">Overview</button>
-        <button>Lock</button>
-        <button>Proposals</button>
-        <button>Farming</button>
-        <button>Accounts</button>
-      </div>
-
-      <section className="governance-hero">
-        <div className="governance-copy">
-          <span className="eyebrow">Governance on Ultra</span>
-          <h1>SHAPE A<br />BRIGHTER<br />ULTRA TOGETHER</h1>
-          <p>Governance is a future Lime B module. The interface is ready without pretending voting is live before the contracts exist.</p>
-          <span className="governance-status">COMING AFTER CORE LIQUIDITY</span>
+      <section className="lb-future-stage">
+        <div className="lb-future-copy">
+          <span>Governance on Ultra</span>
+          <h1>Shape LimeBay together.</h1>
+          <p>Governance is intentionally presented as a future module until voting and locking contracts are actually deployed.</p>
+          <strong>Coming after core liquidity</strong>
         </div>
-
-        <div className="governance-art" aria-hidden="true">
-          <div className="gov-orb" />
-          <div className="gov-disc d1" />
-          <div className="gov-disc d2" />
-          <div className="gov-disc d3" />
+        <div className="lb-future-grid">
+          <article><span>01</span><strong>Proposals</strong><p>Protocol decisions with transparent on-chain execution.</p></article>
+          <article><span>02</span><strong>Locking</strong><p>LIME utility without pretending a live lock contract exists.</p></article>
+          <article><span>03</span><strong>Community</strong><p>A clean path toward shared ownership of Ultra liquidity infrastructure.</p></article>
         </div>
       </section>
 
-      <section className="governance-cards">
-        <article><span>01</span><strong>Shape the ecosystem</strong><p>Future proposals will coordinate key protocol decisions.</p></article>
-        <article><span>02</span><strong>Transparent by design</strong><p>Governance will be introduced only when the underlying contracts are ready.</p></article>
-        <article><span>03</span><strong>Build together</strong><p>Lime B is being designed as shared infrastructure for Ultra.</p></article>
-      </section>
+      <footer className="lb-app-footer">
+        <div><strong>LimeBay</strong><span>Governance when the contracts are ready.</span></div>
+        <div><span>Ultra</span><span>Roadmap</span><span>© 2026 LimeBay</span></div>
+      </footer>
     </main>
   );
 }
