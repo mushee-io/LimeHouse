@@ -11,9 +11,10 @@ jobs:
   inspect:
     runs-on: ubuntu-latest
     steps:
-      - name: Query account permissions
+      - name: Inspect account, token stats and Lime B pools
         run: |
           curl --fail-with-body -sS -X POST             https://ultra-testnet.eosphere.io/v1/chain/get_account             -H 'Content-Type: application/json'             -d '{"account_name":"1aa2aa3aa4wr"}' > account.json
+
           python3 - <<'PY'
           import json
           d=json.load(open("account.json"))
@@ -27,3 +28,12 @@ jobs:
               for a in auth.get("accounts", []):
                   print(" ACCOUNT_AUTH", a)
           PY
+
+          docker pull quay.io/ultra.io/3rdparty-devtools:latest >/dev/null
+          for sym in UOS LIME USDC USDT; do
+            echo "=== eosio.token $sym ==="
+            docker run --rm --entrypoint /bin/bash               quay.io/ultra.io/3rdparty-devtools:latest               -lc "cleos -u https://ultra-testnet.eosphere.io get currency stats eosio.token $sym || true"
+          done
+
+          echo "=== Lime B pools ==="
+          docker run --rm --entrypoint /bin/bash             quay.io/ultra.io/3rdparty-devtools:latest             -lc "cleos -u https://ultra-testnet.eosphere.io get table 1aa2aa3aa4wr 1aa2aa3aa4wr pools --limit 100 || true"
