@@ -26,9 +26,9 @@ echo "RPC: $RPC"
 cleos -u "$RPC" set contract "$ACCOUNT" "$CONTRACT_DIR" limeb.wasm limeb.abi -p "$ACCOUNT@active"
 
 echo "Adding eosio.code permission for inline token payouts..."
-cleos -u "$RPC" set account permission "$ACCOUNT" active --add-code "$ACCOUNT" owner -p "$ACCOUNT@active"
+cleos -u "$RPC" set account permission "$ACCOUNT" active --add-code -p "$ACCOUNT@owner"
 
 echo "Verifying deployed code..."
 cleos -u "$RPC" get code "$ACCOUNT"
 
-echo "Lime B deployment submitted."
+echo "Verifying eosio.code permission..."\ncleos -u "$RPC" get account "$ACCOUNT"\n\necho "Lime B deployment submitted."
