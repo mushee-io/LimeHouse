@@ -13,7 +13,7 @@ export default function PoolsPage() {
   }, []);
 
   const data = useMemo(() => {
-    if (!pool) return { uos: "—", lime: "—", shares: "—", fee: "—", status: "Unavailable" };
+    if (!pool) return { uos: "—", lime: "—", shares: "—", fee: "—", ratio: "—", status: "Syncing" };
     try {
       const a = parseAsset(pool.reserve0);
       const b = parseAsset(pool.reserve1);
@@ -26,81 +26,88 @@ export default function PoolsPage() {
         lime: l.toLocaleString(undefined, { maximumFractionDigits: 6 }),
         shares: Number(pool.total_shares).toLocaleString(),
         fee: `${(Number(pool.fee_bps) / 100).toFixed(2)}%`,
-        status: pool.enabled && u > 0 && l > 0 ? "Funded" : pool.enabled ? "Live" : "Paused"
+        ratio: u > 0 ? (l / u).toLocaleString(undefined, { maximumFractionDigits: 4 }) : "—",
+        status: pool.enabled && u > 0 && l > 0 ? "Live" : pool.enabled ? "Empty" : "Paused"
       };
     } catch {
-      return { uos: "—", lime: "—", shares: "—", fee: "—", status: "Unavailable" };
+      return { uos: "—", lime: "—", shares: "—", fee: "—", ratio: "—", status: "Unavailable" };
     }
   }, [pool]);
 
   return (
-    <main className="app-page pools-page">
-      <div className="app-top-strip acid">
-        <span>BUILT ON ULTRA</span>
-        <span>Trade, provide liquidity and build the next wave of DeFi.</span>
-        <span>POOL 0 · {data.status}</span>
-      </div>
+    <main className="lb-app-shell">
+      <div className="lb-texture" aria-hidden="true" />
       <AppHeader />
 
-      <section className="pools-hero">
-        <div className="pools-hero-copy">
-          <span className="eyebrow">Liquidity markets on Ultra</span>
-          <h1>LIME B POOLS</h1>
-          <p>Provide liquidity, earn pool fees and power the Ultra economy.</p>
-        </div>
-        <div className="pools-hero-art" aria-hidden="true">
-          <div className="pool-art-disc d1" />
-          <div className="pool-art-disc d2" />
-          <div className="pool-art-disc d3" />
-          <div className="pool-art-lime"><span /></div>
-        </div>
-      </section>
-
-      <section className="pools-content">
-        <div className="analytics-tabs">
-          <button className="active">Overview</button>
-          <button>Assets</button>
-          <button>Pools</button>
-          <button>Transactions</button>
+      <section className="lb-explore-stage">
+        <div className="lb-metric-grid">
+          <article>
+            <div className="metric-head"><span>UOS Reserve</span><span>LIVE</span></div>
+            <strong>{data.uos}</strong>
+            <div className="metric-chart"><i/><i/><i/><i/><i/><i/></div>
+          </article>
+          <article>
+            <div className="metric-head"><span>LIME Reserve</span><span>POOL 0</span></div>
+            <strong>{data.lime}</strong>
+            <div className="metric-chart alt"><i/><i/><i/><i/><i/><i/></div>
+          </article>
+          <article>
+            <div className="metric-head"><span>LP Shares</span><span>{data.status}</span></div>
+            <strong>{data.shares}</strong>
+            <div className="metric-chart soft"><i/><i/><i/><i/><i/><i/></div>
+          </article>
         </div>
 
-        <div className="summary-cards">
-          <article><span>UOS reserve</span><strong>{data.uos}</strong><i className="spark lime" /></article>
-          <article><span>LIME reserve</span><strong>{data.lime}</strong><i className="spark violet" /></article>
-          <article><span>LP shares</span><strong>{data.shares}</strong><i className="spark cyan" /></article>
-          <article><span>Pool fee</span><strong>{data.fee}</strong><i className="spark yellow" /></article>
-        </div>
-
-        <div className="table-heading">
-          <div>
-            <h2>Pools</h2>
-            <span>Live on-chain pool state</span>
+        <div className="lb-explore-toolbar">
+          <div className="lb-segmented">
+            <button className="active">Pools</button>
+            <button>Vaults</button>
           </div>
-          <div className="table-controls">
-            <button>All assets⌄</button>
-            <label><span>⌕</span><input placeholder="Search by asset or pool…" /></label>
-            <button>Filter settings⌄</button>
-          </div>
+          <label className="lb-search-field">
+            <span>⌕</span>
+            <input placeholder="Search by token, pair, or address…" />
+          </label>
+          <a href="/liquidity" className="lb-create-pool">＋ Add liquidity</a>
+          <button className="lb-filter-button">☷ Filters</button>
         </div>
 
-        <div className="pool-list-table">
-          <div className="pool-list-head">
-            <span>Pair</span><span>UOS reserve</span><span>LIME reserve</span><span>LP shares</span><span>Fee</span><span>Action</span>
+        <div className="lb-pools-table">
+          <div className="lb-pools-head">
+            <span>Pool</span>
+            <span>Spot</span>
+            <span>UOS reserve</span>
+            <span>LIME reserve</span>
+            <span>Fee</span>
+            <span>Status</span>
           </div>
-          <div className="pool-list-row">
-            <div className="pool-pair">
+
+          <div className="lb-pool-line">
+            <div className="lb-pair-cell">
               <span className="app-token-icon uos">U</span>
               <span className="app-token-icon lime"><LimeLogo compact /></span>
-              <div><strong>UOS / LIME</strong><small>Ultra · Lime B</small></div>
+              <div><strong>UOS / LIME</strong><small>Ultra · LimeBay</small></div>
             </div>
+            <strong>1 : {data.ratio}</strong>
             <strong>{data.uos}</strong>
             <strong>{data.lime}</strong>
-            <strong>{data.shares}</strong>
             <strong>{data.fee}</strong>
-            <a href="/liquidity" className="mini-acid">ADD LIQ</a>
+            <span className="lb-status-pill">{data.status}</span>
+          </div>
+
+          <div className="lb-pool-line muted-row">
+            <div className="lb-pair-cell">
+              <span className="lb-placeholder-token">＋</span>
+              <div><strong>More Ultra pools</strong><small>Permissionless expansion</small></div>
+            </div>
+            <span>—</span><span>—</span><span>—</span><span>—</span><span>Coming next</span>
           </div>
         </div>
       </section>
+
+      <footer className="lb-app-footer">
+        <div><strong>LimeBay</strong><span>Explore liquidity on Ultra.</span></div>
+        <div><span>Pool 0 · UOS/LIME</span><span>{data.status}</span><span>© 2026 LimeBay</span></div>
+      </footer>
     </main>
   );
 }
