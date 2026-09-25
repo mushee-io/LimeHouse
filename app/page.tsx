@@ -1,5 +1,5 @@
-import DexApp from "@/components/DexApp";
+import HomePage from "@/components/HomePage";
 
-export default function Home() {
-  return <DexApp />;
+export default function Page() {
+  return <HomePage />;
 }
