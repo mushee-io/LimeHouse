@@ -31,45 +31,44 @@ export default function AnalyticsPage() {
   }, [pool]);
 
   return (
-    <main className="app-page analytics-page">
-      <div className="app-top-strip blue">
-        <span>LIME B ANALYTICS</span>
-        <span>Live on-chain state</span>
-        <span>Ultra Testnet</span>
-      </div>
+    <main className="lb-app-shell">
+      <div className="lb-texture" aria-hidden="true" />
       <AppHeader />
 
-      <section className="analytics-content">
-        <div className="analytics-tabs large">
+      <section className="lb-analytics-stage">
+        <div className="lb-analytics-tabs">
           <button className="active">Overview</button>
           <button>Assets</button>
           <button>Pools</button>
           <button>Transactions</button>
         </div>
 
-        <div className="analytics-hero-cards">
-          <article><span>UOS in Pool 0</span><strong>{data.uos}</strong></article>
-          <article><span>LIME in Pool 0</span><strong>{data.lime}</strong></article>
-          <article><span>Total LP shares</span><strong>{data.shares}</strong></article>
+        <div className="lb-analytics-metrics">
+          <article><span>UOS reserve</span><strong>{data.uos}</strong></article>
+          <article><span>LIME reserve</span><strong>{data.lime}</strong></article>
+          <article><span>LP shares</span><strong>{data.shares}</strong></article>
+          <article><span>Pool fee</span><strong>{data.fee}</strong></article>
         </div>
 
-        <div className="analytics-section-title">
-          <h1>PROTOCOL OVERVIEW</h1>
-          <p>Only live on-chain values are shown. Volume and historical analytics remain hidden until an indexer is connected.</p>
-        </div>
-
-        <div className="asset-table">
-          <div className="asset-table-head"><span>Asset</span><span>Pool reserve</span><span>Network</span><span>Status</span></div>
-          <div className="asset-table-row">
+        <div className="lb-analytics-table">
+          <div className="head"><span>Asset</span><span>Reserve</span><span>Network</span><span>Status</span></div>
+          <div className="row">
             <div><span className="app-token-icon uos">U</span><strong>UOS</strong></div>
             <strong>{data.uos}</strong><span>Ultra Testnet</span><em>Verified</em>
           </div>
-          <div className="asset-table-row">
+          <div className="row">
             <div><span className="app-token-icon lime"><LimeLogo compact /></span><strong>LIME</strong></div>
             <strong>{data.lime}</strong><span>Ultra Testnet</span><em>Registered</em>
           </div>
         </div>
+
+        <p className="lb-data-note">LimeBay only exposes live on-chain values here. Historical volume and fee charts stay hidden until the indexer is connected.</p>
       </section>
+
+      <footer className="lb-app-footer">
+        <div><strong>LimeBay</strong><span>Live protocol state, no fabricated metrics.</span></div>
+        <div><span>Ultra Testnet</span><span>Pool 0</span><span>© 2026 LimeBay</span></div>
+      </footer>
     </main>
   );
 }
