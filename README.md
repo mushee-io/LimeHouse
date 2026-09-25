@@ -60,3 +60,21 @@ Set `NEXT_PUBLIC_LIMEB_CONTRACT` only after the AMM contract is deployed. The ap
 ## Brand
 
 **Lime B** — native liquidity for Ultra.\n\nBuilds are verified with GitHub Actions.
+
+
+## Product routes
+
+Lime B is structured as a real multi-page DEX rather than a single scrolling app:
+
+- `/` — editorial Lime B homepage
+- `/trade` — market + chart + swap execution
+- `/swap` — focused swap experience
+- `/pools` — pool discovery and live Pool 0 state
+- `/liquidity` — liquidity-provider experience
+- `/portfolio` — portfolio surface
+- `/stake` — future staking surface
+- `/analytics` — live protocol analytics
+- `/governance` — governance surface
+- `/bridge` — future bridge/integration surface
+
+The live UOS/LIME swap path remains wired to the Ultra Testnet contracts; future modules are clearly labeled rather than displaying fabricated protocol functionality.
