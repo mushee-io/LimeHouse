@@ -21,7 +21,7 @@ type Token = {
 
 const TOKENS: Token[] = [
   { symbol: "UOS", name: "Ultra", precision: 8 },
-  { symbol: "LIME", name: "Lime B", precision: 6 }
+  { symbol: "LIME", name: "LimeBay", precision: 6 }
 ];
 
 function TokenIcon({ token }: { token: Token }) {
@@ -185,7 +185,7 @@ export default function SwapPanel({ compact = false }: { compact?: boolean }) {
       const minOut = unitsToAsset(minOutUnits, quote.outputAsset.precision, quote.outputAsset.symbol);
 
       setBusy(true);
-      setNotice("Approve the Lime B swap in Ultra Wallet.");
+      setNotice("Approve the LimeBay swap in Ultra Wallet.");
 
       const response = await signUltraTransaction([
         {
@@ -195,7 +195,7 @@ export default function SwapPanel({ compact = false }: { compact?: boolean }) {
             from: account,
             to: LIMEB_CONTRACT,
             quantity: amountIn,
-            memo: "Lime B swap deposit"
+            memo: "LimeBay swap deposit"
           }
         },
         {
