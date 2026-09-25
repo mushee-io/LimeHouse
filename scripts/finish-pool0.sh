@@ -83,7 +83,7 @@ r1=float(str(p["reserve1"]).split()[0])
 shares=int(p["total_shares"])
 if r0 <= 0 or r1 <= 0 or shares <= 0:
     raise SystemExit("Pool 0 is still empty")
-print(f"SUCCESS: Pool 0 funded with {p['reserve0']} + {p['reserve1']} | shares={shares}")
+print("SUCCESS: Pool 0 funded with {} + {} | shares={}".format(p["reserve0"], p["reserve1"], shares))
 '
 
 echo
