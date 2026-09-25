@@ -345,3 +345,9 @@ svg{display:block}
   .lb-analytics-table{overflow-x:auto}.lb-analytics-table .head,.lb-analytics-table .row{min-width:720px}
   .lb-liquidity-cards article.primary>strong{font-size:38px}
 }
+
+
+.lb-swap-focus{position:relative;z-index:2;width:min(1040px,calc(100% - 40px));margin:72px auto 90px;display:grid;grid-template-columns:.8fr 1.2fr;gap:70px;align-items:center}
+.lb-swap-copy>span{font:800 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:#6b786f}.lb-swap-copy h1{margin:16px 0 0;font-size:clamp(58px,7vw,92px);line-height:.9;letter-spacing:-.06em;font-weight:520}.lb-swap-copy p{max-width:500px;color:#68766f;line-height:1.65}
+.lb-swap-focus .app-swap-card{margin:0}
+@media(max-width:820px){.lb-swap-focus{grid-template-columns:1fr;gap:32px;width:calc(100% - 24px);margin-top:46px}}
