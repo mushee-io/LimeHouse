@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { LIMEB_CONTRACT } from "@/lib/config";
+import { LIMEB_CONTRACT, LIME_TOKEN_CONTRACT } from "@/lib/config";
 import {
   assetToDisplay,
   decimalToUnits,
@@ -245,7 +245,7 @@ export default function DexApp() {
       if (!pool0) {
         setNotice("Pool 0 is not on-chain yet. Run scripts/create-pool0.sh with the Lime B contract wallet unlocked.");
       } else if (!liquid) {
-        setNotice("Pool 0 is live. Initial UOS + USDT liquidity is the next on-chain step.");
+        setNotice("Pool 0 is live. Initial UOS + LIME liquidity is the next on-chain step.");
       } else {
         setNotice("Pool 0 is live and funded. Liquidity position management is being wired to this panel next.");
       }
@@ -297,7 +297,7 @@ export default function DexApp() {
 
       const response = await signUltraTransaction([
         {
-          contract: "eosio.token",
+          contract: quote.inputAsset.symbol === "UOS" ? "eosio.token" : LIME_TOKEN_CONTRACT,
           action: "transfer",
           data: {
             from: account,
