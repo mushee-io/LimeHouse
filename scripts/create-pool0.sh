@@ -4,7 +4,9 @@ set -euo pipefail
 ACCOUNT="${LIMEB_ACCOUNT:-1aa2aa3aa4wr}"
 RPC="${ULTRA_TESTNET_RPC:-https://ultra-testnet.eosphere.io}"
 TOKEN0="${LIMEB_POOL0_TOKEN0:-8,UOS}"
-TOKEN1="${LIMEB_POOL0_TOKEN1:-6,USDT}"
+TOKEN1="${LIMEB_POOL0_TOKEN1:-6,LIME}"
+TOKEN0_CONTRACT="${LIMEB_POOL0_TOKEN0_CONTRACT:-eosio.token}"
+TOKEN1_CONTRACT="${LIMEB_POOL0_TOKEN1_CONTRACT:-1aa2aa3aa4ws}"
 FEE_BPS="${LIMEB_POOL0_FEE_BPS:-30}"
 
 if ! command -v cleos >/dev/null 2>&1; then
@@ -26,22 +28,27 @@ echo "  Pair:     $TOKEN0 / $TOKEN1"
 echo "  Fee:      $FEE_BPS bps"
 
 echo
-echo "Checking token definitions on eosio.token..."
-STATS0="$(cleos -u "$RPC" get currency stats eosio.token "$TOKEN0_CODE")"
-STATS1="$(cleos -u "$RPC" get currency stats eosio.token "$TOKEN1_CODE")"
+echo "Checking token definitions..."
+STATS0="$(cleos -u "$RPC" get currency stats "$TOKEN0_CONTRACT" "$TOKEN0_CODE")"
+STATS1="$(cleos -u "$RPC" get currency stats "$TOKEN1_CONTRACT" "$TOKEN1_CODE")"
 
 if [[ "$STATS0" == "{}" ]]; then
-  echo "Token $TOKEN0_CODE does not exist on eosio.token."
+  echo "Token $TOKEN0_CODE does not exist on $TOKEN0_CONTRACT."
   exit 1
 fi
 
 if [[ "$STATS1" == "{}" ]]; then
-  echo "Token $TOKEN1_CODE does not exist on eosio.token."
+  echo "Token $TOKEN1_CODE does not exist on $TOKEN1_CONTRACT."
   exit 1
 fi
 
-echo "  $TOKEN0_CODE: found"
-echo "  $TOKEN1_CODE: found"
+echo "  $TOKEN0_CODE: found on $TOKEN0_CONTRACT"
+echo "  $TOKEN1_CODE: found on $TOKEN1_CONTRACT"
+
+echo
+echo "Registering tokens with Lime B..."
+cleos -u "$RPC" push action "$ACCOUNT" regtoken   "[\"$TOKEN0_CONTRACT\",\"$TOKEN0\",true]"   -p "$ACCOUNT@active"
+cleos -u "$RPC" push action "$ACCOUNT" regtoken   "[\"$TOKEN1_CONTRACT\",\"$TOKEN1\",true]"   -p "$ACCOUNT@active"
 
 echo
 echo "Checking existing Lime B pools..."
