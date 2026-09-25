@@ -27,7 +27,7 @@ type Token = {
 
 const TOKENS: Token[] = [
   { symbol: "UOS", name: "Ultra", accent: "#101114", text: "#ffffff", precision: 8 },
-  { symbol: "USDT", name: "Tether USD", accent: "#26a17b", text: "#ffffff", precision: 6 }
+  { symbol: "LIME", name: "Lime B", accent: "#c9f03f", text: "#111314", precision: 6 }
 ];
 
 function ChevronDown({ small = false }: { small?: boolean }) {
@@ -77,7 +77,7 @@ function TokenBadge({ token }: { token: Token }) {
       style={{ background: token.accent, color: token.text }}
       aria-hidden="true"
     >
-      {token.symbol === "UOS" ? "U" : "₮"}
+      {token.symbol === "UOS" ? "U" : "L"}
     </span>
   );
 }
@@ -339,7 +339,7 @@ export default function DexApp() {
 
   const poolPair = pool0
     ? `${parseAsset(pool0.reserve0).symbol} / ${parseAsset(pool0.reserve1).symbol}`
-    : "UOS / USDT";
+    : "UOS / LIME";
 
   return (
     <main className="app-shell">
@@ -390,8 +390,8 @@ export default function DexApp() {
           <h1>{tab === "swap" ? "Swap" : "Pool"}</h1>
           <p className="subhead">
             {tab === "swap"
-              ? "Trade UOS and USDT through Lime B Pool 0 on Ultra."
-              : "Pool 0 · UOS / USDT · 0.30% LP fee."}
+              ? "Trade UOS and LIME through Lime B Pool 0 on Ultra."
+              : "Pool 0 · UOS / LIME · 0.30% LP fee."}
           </p>
 
           <div className="card">
@@ -535,9 +535,9 @@ export default function DexApp() {
                       </strong>
                     </div>
                     <div>
-                      <span>USDT reserve</span>
+                      <span>LIME reserve</span>
                       <strong>
-                        {parseAsset(pool0.reserve0).symbol === "USDT"
+                        {parseAsset(pool0.reserve0).symbol === "LIME"
                           ? assetToDisplay(pool0.reserve0)
                           : assetToDisplay(pool0.reserve1)}
                       </strong>
@@ -549,7 +549,7 @@ export default function DexApp() {
                   </div>
                 ) : (
                   <p>
-                    Pool 0 is configured as UOS / USDT. The contract is deployed and ready for its first pool definition.
+                    Pool 0 is configured as UOS / LIME. The contract is deployed and ready for its first pool definition.
                   </p>
                 )}
                 <button className="primary-action" type="button" onClick={handlePrimaryAction}>
