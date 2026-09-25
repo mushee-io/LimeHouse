@@ -1,30 +1,34 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { connectUltraWallet, disconnectUltraWallet } from "@/lib/ultraWallet";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { LIMEB_CONTRACT } from "@/lib/config";
+import {
+  assetToDisplay,
+  decimalToUnits,
+  fetchPool0,
+  parseAsset,
+  PoolRow,
+  quotePool,
+  unitsToAsset
+} from "@/lib/ultraRpc";
+import {
+  connectUltraWallet,
+  disconnectUltraWallet,
+  signUltraTransaction
+} from "@/lib/ultraWallet";
 
 type Token = {
   symbol: string;
   name: string;
   accent: string;
   text: string;
+  precision: number;
 };
 
 const TOKENS: Token[] = [
-  { symbol: "UOS", name: "Ultra", accent: "#101114", text: "#ffffff" },
-  { symbol: "USDC", name: "USD Coin", accent: "#2775ca", text: "#ffffff" },
-  { symbol: "USDT", name: "Tether USD", accent: "#26a17b", text: "#ffffff" },
-  { symbol: "LIME", name: "Lime B", accent: "#cbf43f", text: "#111314" }
+  { symbol: "UOS", name: "Ultra", accent: "#101114", text: "#ffffff", precision: 8 },
+  { symbol: "USDT", name: "Tether USD", accent: "#26a17b", text: "#ffffff", precision: 6 }
 ];
-
-const DEMO_RATES: Record<string, number> = {
-  "UOS-USDC": 0.071,
-  "USDC-UOS": 14.0845,
-  "UOS-USDT": 0.071,
-  "USDT-UOS": 14.0845,
-  "LIME-UOS": 0.24,
-  "UOS-LIME": 4.1667
-};
 
 function ChevronDown({ small = false }: { small?: boolean }) {
   return (
@@ -73,7 +77,7 @@ function TokenBadge({ token }: { token: Token }) {
       style={{ background: token.accent, color: token.text }}
       aria-hidden="true"
     >
-      {token.symbol === "UOS" ? "U" : token.symbol.slice(0, 1)}
+      {token.symbol === "UOS" ? "U" : "₮"}
     </span>
   );
 }
@@ -122,6 +126,16 @@ function TokenPicker({
   );
 }
 
+function poolHasLiquidity(pool: PoolRow | null) {
+  if (!pool) return false;
+
+  try {
+    return parseAsset(pool.reserve0).units > 0n && parseAsset(pool.reserve1).units > 0n;
+  } catch {
+    return false;
+  }
+}
+
 export default function DexApp() {
   const [tab, setTab] = useState<"swap" | "pool">("swap");
   const [tokenIn, setTokenIn] = useState(TOKENS[0]);
@@ -132,16 +146,67 @@ export default function DexApp() {
   const [notice, setNotice] = useState("");
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [slippage, setSlippage] = useState("0.5");
+  const [pool0, setPool0] = useState<PoolRow | null>(null);
+  const [poolLoading, setPoolLoading] = useState(true);
+  const [poolError, setPoolError] = useState("");
+
+  const refreshPool = useCallback(async () => {
+    try {
+      const pool = await fetchPool0();
+      setPool0(pool);
+      setPoolError("");
+    } catch (error) {
+      setPoolError(
+        error && typeof error === "object" && "message" in error
+          ? String((error as { message?: unknown }).message)
+          : "Could not read Lime B Pool 0 from Ultra Testnet."
+      );
+    } finally {
+      setPoolLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void refreshPool();
+    const timer = window.setInterval(() => void refreshPool(), 15000);
+    return () => window.clearInterval(timer);
+  }, [refreshPool]);
+
+  const quote = useMemo(() => {
+    if (!pool0 || !amount) return null;
+
+    try {
+      const reserve0 = parseAsset(pool0.reserve0);
+      const reserve1 = parseAsset(pool0.reserve1);
+      const inputReserve = reserve0.symbol === tokenIn.symbol ? reserve0 : reserve1;
+
+      if (inputReserve.symbol !== tokenIn.symbol) return null;
+
+      const inputUnits = decimalToUnits(amount, inputReserve.precision);
+      if (inputUnits <= 0n) return null;
+
+      return quotePool(pool0, tokenIn.symbol, inputUnits);
+    } catch {
+      return null;
+    }
+  }, [amount, pool0, tokenIn.symbol]);
 
   const estimate = useMemo(() => {
-    const numeric = Number(amount);
-    if (!numeric || numeric <= 0) return "";
-    const rate = DEMO_RATES[`${tokenIn.symbol}-${tokenOut.symbol}`];
-    if (!rate) return "—";
-    return (numeric * rate).toLocaleString(undefined, { maximumFractionDigits: 6 });
-  }, [amount, tokenIn.symbol, tokenOut.symbol]);
+    if (!amount) return "";
+    if (!pool0 || !poolHasLiquidity(pool0) || !quote || quote.output <= 0n) return "—";
+
+    const value = unitsToAsset(
+      quote.output,
+      quote.outputAsset.precision,
+      quote.outputAsset.symbol
+    ).split(" ")[0];
+
+    return Number(value).toLocaleString(undefined, { maximumFractionDigits: 6 });
+  }, [amount, pool0, quote]);
 
   const shortAccount = account ? `${account.slice(0, 5)}…${account.slice(-4)}` : "";
+  const live = Boolean(pool0);
+  const liquid = poolHasLiquidity(pool0);
 
   const flip = () => {
     setTokenIn(tokenOut);
@@ -170,29 +235,120 @@ export default function DexApp() {
     }
   }
 
-  function handlePrimaryAction() {
+  async function handlePrimaryAction() {
     if (!account) {
       void handleWallet();
       return;
     }
 
-    const contract = process.env.NEXT_PUBLIC_LIMEB_CONTRACT || "1aa2aa3aa4wr";
-    if (!contract) {
-      setNotice("Wallet connected. Lime B AMM execution will unlock after the pool contract is deployed and NEXT_PUBLIC_LIMEB_CONTRACT is configured.");
+    if (tab === "pool") {
+      if (!pool0) {
+        setNotice("Pool 0 is not on-chain yet. Run scripts/create-pool0.sh with the Lime B contract wallet unlocked.");
+      } else if (!liquid) {
+        setNotice("Pool 0 is live. Initial UOS + USDT liquidity is the next on-chain step.");
+      } else {
+        setNotice("Pool 0 is live and funded. Liquidity position management is being wired to this panel next.");
+      }
       return;
     }
 
-    setNotice("Pool contract detected. Transaction construction is the next protocol integration step.");
+    if (!pool0) {
+      setNotice("Pool 0 is not live on Ultra Testnet yet.");
+      return;
+    }
+
+    if (!pool0.enabled) {
+      setNotice("Pool 0 is currently paused.");
+      return;
+    }
+
+    if (!liquid) {
+      setNotice("Pool 0 exists but has no liquidity yet.");
+      return;
+    }
+
+    if (!quote || quote.output <= 0n) {
+      setNotice("Enter an amount that can be quoted against Pool 0.");
+      return;
+    }
+
+    try {
+      const inputUnits = decimalToUnits(amount, quote.inputAsset.precision);
+      const amountIn = unitsToAsset(
+        inputUnits,
+        quote.inputAsset.precision,
+        quote.inputAsset.symbol
+      );
+
+      const slippageBps = Math.max(
+        0,
+        Math.min(9999, Math.round(Number(slippage) * 100))
+      );
+      const minOutUnits =
+        (quote.output * BigInt(10000 - slippageBps)) / 10000n;
+      const minOut = unitsToAsset(
+        minOutUnits,
+        quote.outputAsset.precision,
+        quote.outputAsset.symbol
+      );
+
+      setNotice("Approve the atomic Lime B swap in Ultra Wallet.");
+      setWalletBusy(true);
+
+      const response = await signUltraTransaction([
+        {
+          contract: "eosio.token",
+          action: "transfer",
+          data: {
+            from: account,
+            to: LIMEB_CONTRACT,
+            quantity: amountIn,
+            memo: "Lime B swap deposit"
+          }
+        },
+        {
+          contract: LIMEB_CONTRACT,
+          action: "swap",
+          data: {
+            user: account,
+            pool_id: Number(pool0.id),
+            amount_in: amountIn,
+            min_out: minOut
+          }
+        }
+      ]);
+
+      const data = response.data as { transactionHash?: string };
+      setNotice(
+        data.transactionHash
+          ? `Swap executed on Ultra Testnet · ${data.transactionHash.slice(0, 12)}…`
+          : "Swap executed on Ultra Testnet."
+      );
+      setAmount("");
+      await refreshPool();
+    } catch (error) {
+      const message =
+        error && typeof error === "object" && "message" in error
+          ? String((error as { message?: unknown }).message)
+          : "The Ultra Wallet transaction was not completed.";
+      setNotice(message);
+    } finally {
+      setWalletBusy(false);
+    }
   }
+
+  const poolPair = pool0
+    ? `${parseAsset(pool0.reserve0).symbol} / ${parseAsset(pool0.reserve1).symbol}`
+    : "UOS / USDT";
 
   return (
     <main className="app-shell">
       <div className="announcement">
         <span className="announcement-mark">B</span>
         <span>Lime B is building native liquidity for Ultra.</span>
-        <a href="https://developers.ultra.io/" target="_blank" rel="noreferrer">
-          Ultra docs <span aria-hidden="true">↗</span>
-        </a>
+        <span className={live ? "live-copy" : "pending-copy"}>
+          {poolLoading ? "Reading Pool 0…" : live ? "Pool 0 live" : "Pool 0 awaiting bootstrap"}
+        </span>
       </div>
 
       <header className="nav">
@@ -203,10 +359,10 @@ export default function DexApp() {
           </a>
 
           <nav className="desktop-links" aria-label="Main navigation">
-            <button className="nav-link active" type="button" onClick={() => setTab("swap")}>
+            <button className={tab === "swap" ? "nav-link active" : "nav-link"} type="button" onClick={() => setTab("swap")}>
               Swap
             </button>
-            <button className="nav-link" type="button" onClick={() => setTab("pool")}>
+            <button className={tab === "pool" ? "nav-link active" : "nav-link"} type="button" onClick={() => setTab("pool")}>
               Pool
             </button>
             <button className="nav-link" type="button">
@@ -224,7 +380,7 @@ export default function DexApp() {
             Ultra Testnet
           </span>
           <button className="wallet-top" type="button" onClick={handleWallet} disabled={walletBusy}>
-            {walletBusy ? "Opening…" : account ? shortAccount : "Connect wallet"}
+            {walletBusy ? "Working…" : account ? shortAccount : "Connect wallet"}
           </button>
         </div>
       </header>
@@ -234,8 +390,8 @@ export default function DexApp() {
           <h1>{tab === "swap" ? "Swap" : "Pool"}</h1>
           <p className="subhead">
             {tab === "swap"
-              ? "Trade assets on Ultra with Lime B liquidity."
-              : "Provide liquidity and earn a share of pool fees."}
+              ? "Trade UOS and USDT through Lime B Pool 0 on Ultra."
+              : "Pool 0 · UOS / USDT · 0.30% LP fee."}
           </p>
 
           <div className="card">
@@ -293,7 +449,7 @@ export default function DexApp() {
                 <div className="field-block">
                   <div className="field-label-row">
                     <span>You pay</span>
-                    <span>Balance: {account ? "—" : "0"}</span>
+                    <span>{live ? poolPair : "Pool 0"}</span>
                   </div>
                   <div className="asset-row">
                     <TokenPicker
@@ -310,8 +466,7 @@ export default function DexApp() {
                     />
                   </div>
                   <div className="field-foot">
-                    <span>{amount ? "Indicative quote" : "$0.00"}</span>
-                    {account && <button type="button">Max</button>}
+                    <span>{liquid ? "Live on-chain quote" : "Awaiting liquidity"}</span>
                   </div>
                 </div>
 
@@ -324,7 +479,7 @@ export default function DexApp() {
                 <div className="field-block output">
                   <div className="field-label-row">
                     <span>You receive</span>
-                    <span>Balance: {account ? "—" : "0"}</span>
+                    <span>{pool0?.enabled === false ? "Pool paused" : live ? "Pool 0" : "Not live"}</span>
                   </div>
                   <div className="asset-row">
                     <TokenPicker
@@ -332,16 +487,18 @@ export default function DexApp() {
                       exclude={tokenIn.symbol}
                       onChange={(token) => setTokenOut(token)}
                     />
-                    <div className={estimate ? "estimate" : "estimate muted"}>{estimate || "0.00"}</div>
+                    <div className={estimate && estimate !== "—" ? "estimate" : "estimate muted"}>
+                      {estimate || "0.00"}
+                    </div>
                   </div>
                   <div className="field-foot">
-                    <span>{estimate && estimate !== "—" ? "Preview only" : "$0.00"}</span>
+                    <span>{estimate && estimate !== "—" ? "Constant-product quote" : "$0.00"}</span>
                   </div>
                 </div>
 
                 <div className="route-summary">
-                  <span>Slippage tolerance</span>
-                  <strong>{slippage}%</strong>
+                  <span>Pool fee · {(Number(pool0?.fee_bps ?? 30) / 100).toFixed(2)}%</span>
+                  <strong>Max slippage · {slippage}%</strong>
                 </div>
 
                 <button
@@ -350,28 +507,63 @@ export default function DexApp() {
                   onClick={handlePrimaryAction}
                   disabled={walletBusy}
                 >
-                  {!account ? "Connect wallet" : "Review swap"}
+                  {!account
+                    ? "Connect wallet"
+                    : !live
+                      ? "Pool 0 not live"
+                      : !liquid
+                        ? "Awaiting liquidity"
+                        : "Review swap"}
                 </button>
               </>
             ) : (
               <div className="pool-panel">
-                <div className="pool-orb">LB</div>
-                <h2>Ultra liquidity pools</h2>
-                <p>
-                  Create and manage Lime B positions once the AMM contract is deployed on Ultra Testnet.
-                </p>
+                <div className="pool-orb">0</div>
+                <div className="pool-status-line">
+                  <span className={live ? "pool-status-dot live" : "pool-status-dot"} />
+                  {poolLoading ? "Reading Ultra Testnet" : live ? "Pool 0 live on-chain" : "Pool 0 not created yet"}
+                </div>
+                <h2>{poolPair}</h2>
+                {pool0 ? (
+                  <div className="pool-metrics">
+                    <div>
+                      <span>UOS reserve</span>
+                      <strong>
+                        {parseAsset(pool0.reserve0).symbol === "UOS"
+                          ? assetToDisplay(pool0.reserve0)
+                          : assetToDisplay(pool0.reserve1)}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>USDT reserve</span>
+                      <strong>
+                        {parseAsset(pool0.reserve0).symbol === "USDT"
+                          ? assetToDisplay(pool0.reserve0)
+                          : assetToDisplay(pool0.reserve1)}
+                      </strong>
+                    </div>
+                    <div>
+                      <span>LP fee</span>
+                      <strong>{(Number(pool0.fee_bps) / 100).toFixed(2)}%</strong>
+                    </div>
+                  </div>
+                ) : (
+                  <p>
+                    Pool 0 is configured as UOS / USDT. The contract is deployed and ready for its first pool definition.
+                  </p>
+                )}
                 <button className="primary-action" type="button" onClick={handlePrimaryAction}>
-                  {!account ? "Connect wallet" : "Create position"}
+                  {!account ? "Connect wallet" : !live ? "Bootstrap Pool 0" : !liquid ? "Add initial liquidity" : "Manage liquidity"}
                 </button>
               </div>
             )}
 
-            {notice && <div className="notice">{notice}</div>}
+            {(notice || poolError) && <div className="notice">{notice || poolError}</div>}
           </div>
 
           <div className="powered">
-            <span>Built for</span>
-            <strong>ULTRA</strong>
+            <span>Pool contract</span>
+            <strong>{LIMEB_CONTRACT}</strong>
           </div>
         </div>
       </section>
@@ -385,12 +577,12 @@ export default function DexApp() {
 
           <div className="stats-grid">
             <div className="stat">
-              <span>Total liquidity</span>
-              <strong>—</strong>
+              <span>Pool 0</span>
+              <strong>{live ? poolPair : "Awaiting creation"}</strong>
             </div>
             <div className="stat">
-              <span>7d volume</span>
-              <strong>—</strong>
+              <span>Liquidity status</span>
+              <strong>{liquid ? "Funded" : live ? "Needs liquidity" : "—"}</strong>
             </div>
             <div className="stat">
               <span>Network</span>
