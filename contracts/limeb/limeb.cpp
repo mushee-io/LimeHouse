@@ -11,7 +11,10 @@ using std::string;
 /**
  * Lime B AMM
  *
- * Ultra-native constant-product AMM for fungible assets issued by eosio.token.
+ * Ultra-native constant-product AMM for registered EOSIO-style fungible token contracts.
+
+ * Each symbol is registered to exactly one token contract. This lets Lime B pair
+ * native UOS from eosio.token with project tokens deployed on separate contracts.
  *
  * Flow:
  *  1. User transfers tokens to this contract. ontransfer credits an internal balance.
@@ -28,6 +31,47 @@ public:
     static constexpr uint16_t MAX_FEE_BPS = 1000; // 10%
     static constexpr uint16_t BPS_DENOM = 10000;
 
+    ACTION regtoken(name token_contract, symbol token_symbol, bool enabled) {
+        require_auth(get_self());
+
+        check(is_account(token_contract), "token contract account does not exist");
+        check(token_symbol.is_valid(), "token symbol is invalid");
+
+        tokens_t tokens(get_self(), get_self().value);
+        auto itr = tokens.find(token_symbol.code().raw());
+
+        if (itr == tokens.end()) {
+            tokens.emplace(get_self(), [&](auto& row) {
+                row.symbol_code_raw = token_symbol.code().raw();
+                row.token_contract = token_contract;
+                row.token_symbol = token_symbol;
+                row.enabled = enabled;
+            });
+            return;
+        }
+
+        check(itr->token_symbol == token_symbol,
+              "registered token precision mismatch");
+
+        tokens.modify(itr, same_payer, [&](auto& row) {
+            row.token_contract = token_contract;
+            row.enabled = enabled;
+        });
+    }
+
+    ACTION erasepool(uint64_t pool_id) {
+        require_auth(get_self());
+
+        pools_t pools(get_self(), get_self().value);
+        auto itr = pools.require_find(pool_id, "pool not found");
+
+        check(itr->reserve0.amount == 0 && itr->reserve1.amount == 0,
+              "cannot erase a funded pool");
+        check(itr->total_shares == 0, "cannot erase a pool with LP shares");
+
+        pools.erase(itr);
+    }
+
     ACTION createpool(symbol token0, symbol token1, uint16_t fee_bps) {
         require_auth(get_self());
 
@@ -35,6 +79,8 @@ public:
         check(token1.is_valid(), "token1 symbol is invalid");
         check(token0 != token1, "pool tokens must be different");
         check(fee_bps <= MAX_FEE_BPS, "fee exceeds maximum");
+        require_registered_token(token0);
+        require_registered_token(token1);
 
         pools_t pools(get_self(), get_self().value);
         auto pair_index = pools.get_index<"bypair"_n>();
@@ -324,7 +370,7 @@ public:
      * Transfers sent by the contract itself are ignored to avoid re-crediting
      * swap outputs and liquidity withdrawals.
      */
-    [[eosio::on_notify("eosio.token::transfer")]]
+    [[eosio::on_notify("*::transfer")]]
     void ontransfer(name from, name to, asset quantity, string memo) {
         if (to != get_self() || from == get_self()) {
             return;
@@ -333,8 +379,28 @@ public:
         check(quantity.is_valid(), "invalid deposit quantity");
         check(quantity.amount > 0, "deposit must be positive");
 
+        tokens_t tokens(get_self(), get_self().value);
+        auto itr = tokens.require_find(quantity.symbol.code().raw(),
+                                       "token is not registered");
+        check(itr->enabled, "token is disabled");
+        check(itr->token_symbol == quantity.symbol,
+              "registered token precision mismatch");
+        check(itr->token_contract == get_first_receiver(),
+              "transfer came from the wrong token contract");
+
         add_credit(from, quantity);
     }
+
+    TABLE tokenreg {
+        uint64_t symbol_code_raw;
+        name token_contract;
+        symbol token_symbol;
+        bool enabled;
+
+        uint64_t primary_key() const { return symbol_code_raw; }
+    };
+
+    typedef multi_index<"tokens"_n, tokenreg> tokens_t;
 
     TABLE pool {
         uint64_t id;
@@ -473,6 +539,25 @@ private:
         return static_cast<uint64_t>(answer);
     }
 
+    void require_registered_token(symbol token_symbol) {
+        tokens_t tokens(get_self(), get_self().value);
+        auto itr = tokens.require_find(token_symbol.code().raw(),
+                                       "token is not registered");
+        check(itr->enabled, "token is disabled");
+        check(itr->token_symbol == token_symbol,
+              "registered token precision mismatch");
+    }
+
+    name token_contract_for(symbol token_symbol) {
+        tokens_t tokens(get_self(), get_self().value);
+        auto itr = tokens.require_find(token_symbol.code().raw(),
+                                       "token is not registered");
+        check(itr->enabled, "token is disabled");
+        check(itr->token_symbol == token_symbol,
+              "registered token precision mismatch");
+        return itr->token_contract;
+    }
+
     void add_credit(name owner, asset quantity) {
         credits_t credits(get_self(), get_self().value);
         auto index = credits.get_index<"byownersym"_n>();
@@ -572,7 +657,7 @@ private:
 
         action(
             permission_level{get_self(), "active"_n},
-            "eosio.token"_n,
+            token_contract_for(quantity.symbol),
             "transfer"_n,
             std::make_tuple(get_self(), to, quantity, memo)
         ).send();
