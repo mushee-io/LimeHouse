@@ -24,23 +24,31 @@ jobs:
       - name: Pull Ultra developer tools
         run: docker pull quay.io/ultra.io/3rdparty-devtools:latest
 
-      - name: Compile Lime B contract
+      - name: Compile Lime B contracts
         run: |
           docker run --rm \
             --entrypoint /bin/bash \
             -v "$PWD:/opt/ultra_workdir/LimeHouse" \
             quay.io/ultra.io/3rdparty-devtools:latest \
-            -lc 'cd /opt/ultra_workdir/LimeHouse/contracts/limeb && cdt-cpp -o limeb.wasm limeb.cpp'
+            -lc 'set -e
+              cd /opt/ultra_workdir/LimeHouse/contracts/limeb
+              cdt-cpp -o limeb.wasm limeb.cpp
+              cd ../limetoken
+              cdt-cpp -o limetoken.wasm limetoken.cpp'
 
       - name: Verify ABI and WASM
         run: |
           test -s contracts/limeb/limeb.wasm
           test -s contracts/limeb/limeb.abi
+          test -s contracts/limetoken/limetoken.wasm
+          test -s contracts/limetoken/limetoken.abi
 
-      - name: Upload compiled contract
+      - name: Upload compiled contracts
         uses: actions/upload-artifact@v4
         with:
-          name: limeb-ultra-contract
+          name: limeb-ultra-contracts
           path: |
             contracts/limeb/limeb.wasm
             contracts/limeb/limeb.abi
+            contracts/limetoken/limetoken.wasm
+            contracts/limetoken/limetoken.abi
