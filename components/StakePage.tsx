@@ -2,20 +2,81 @@ import AppHeader from "@/components/AppHeader";
 
 export default function StakePage() {
   return (
-    <main className="app-page future-page">
-      <div className="app-top-strip acid">
-        <span>LIME B STAKE</span><span>Ultra Testnet</span><span>Future module</span>
-      </div>
+    <main className="lb-app-shell">
+      <div className="lb-texture" aria-hidden="true" />
       <AppHeader />
-      <section className="future-hero">
-        <div>
-          <span className="eyebrow dot">Protocol expansion</span>
-          <h1>STAKE<br />WITH<br />PURPOSE</h1>
-          <p>Staking is intentionally separated from the live AMM. This page is the future Lime B staking surface without pretending a staking contract exists today.</p>
-          <span className="future-status">NOT LIVE YET</span>
+
+      <section className="lb-earn-stage">
+        <div className="lb-earn-summary">
+          <article>
+            <span>Total staked</span>
+            <strong>—</strong>
+            <p>LIME staking module</p>
+          </article>
+          <article>
+            <span>Your staked</span>
+            <strong>0 LIME</strong>
+            <p>Connect wallet to continue</p>
+          </article>
+          <article>
+            <span>Pending unstake</span>
+            <strong>—</strong>
+            <p>No unstake pending</p>
+          </article>
         </div>
-        <div className="future-art"><i/><i/><i/></div>
+
+        <section className="lb-stake-card">
+          <div className="lb-wide-tabs">
+            <button className="active">Stake</button>
+            <button>Unstake</button>
+          </div>
+
+          <div className="lb-staking-title-row">
+            <div>
+              <strong>Staking tiers</strong>
+              <span>Future LimeBay utility layer</span>
+            </div>
+            <span>0 staked</span>
+          </div>
+
+          <div className="lb-tier-labels">
+            <span>Tier</span>
+            <span>LP boost</span>
+            <span>Fee benefits</span>
+            <span>Protocol tools</span>
+          </div>
+
+          <div className="lb-tier-row">
+            <div><strong>Tier 1</strong><span>1K LIME</span></div>
+            <strong>Planned</strong><strong>Planned</strong><span>—</span>
+          </div>
+          <div className="lb-tier-row">
+            <div><strong>Tier 2</strong><span>5K LIME</span></div>
+            <strong>Planned</strong><strong>Planned</strong><span>—</span>
+          </div>
+          <div className="lb-tier-row">
+            <div><strong>Tier 3</strong><span>10K LIME</span></div>
+            <strong>Planned</strong><strong>Planned</strong><span>Roadmap</span>
+          </div>
+
+          <div className="lb-stake-input">
+            <div>
+              <span>Your stake</span>
+              <button type="button">LIME ⌄</button>
+            </div>
+            <strong>0</strong>
+          </div>
+
+          <button className="lb-disabled-action" type="button" disabled>
+            Staking contracts not live yet
+          </button>
+        </section>
       </section>
+
+      <footer className="lb-app-footer">
+        <div><strong>LimeBay</strong><span>Earn surfaces without fake yield.</span></div>
+        <div><span>Ultra Testnet</span><span>Staking roadmap</span><span>© 2026 LimeBay</span></div>
+      </footer>
     </main>
   );
 }
