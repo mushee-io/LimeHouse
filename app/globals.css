@@ -754,3 +754,76 @@ a {
     padding-inline: 20px;
   }
 }
+
+
+.live-copy,
+.pending-copy {
+  margin-left: 3px;
+  padding: 3px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 760;
+}
+
+.live-copy {
+  background: rgba(141, 195, 38, 0.16);
+  color: #54750f;
+}
+
+.pending-copy {
+  background: rgba(23, 24, 27, 0.08);
+  color: #686b70;
+}
+
+.pool-status-line {
+  margin: 0 auto 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.pool-status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #b6b8ba;
+}
+
+.pool-status-dot.live {
+  background: #8dc326;
+  box-shadow: 0 0 0 3px rgba(141, 195, 38, 0.12);
+}
+
+.pool-metrics {
+  margin-top: 20px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  overflow: hidden;
+  text-align: left;
+}
+
+.pool-metrics > div {
+  min-height: 48px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+}
+
+.pool-metrics > div:last-child {
+  border-bottom: 0;
+}
+
+.pool-metrics span {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.pool-metrics strong {
+  font-size: 12px;
+  letter-spacing: -0.02em;
+}
