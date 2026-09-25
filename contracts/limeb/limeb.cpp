@@ -570,7 +570,7 @@ private:
                 id = credits.rbegin()->id + 1;
             }
 
-            credits.emplace(owner, [&](auto& row) {
+            credits.emplace(get_self(), [&](auto& row) {
                 row.id = id;
                 row.owner = owner;
                 row.balance = quantity;
@@ -636,7 +636,7 @@ private:
                 id = positions.rbegin()->id + 1;
             }
 
-            positions.emplace(owner, [&](auto& row) {
+            positions.emplace(get_self(), [&](auto& row) {
                 row.id = id;
                 row.owner = owner;
                 row.pool_id = pool_id;
