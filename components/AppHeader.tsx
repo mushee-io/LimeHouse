@@ -11,8 +11,10 @@ const APP_LINKS = [
   { href: "/trade", label: "Trade" },
   { href: "/pools", label: "Pools" },
   { href: "/liquidity", label: "Liquidity" },
+  { href: "/stake", label: "Stake" },
   { href: "/analytics", label: "Analytics" },
-  { href: "/governance", label: "Governance" }
+  { href: "/governance", label: "Governance" },
+  { href: "/bridge", label: "Bridge" }
 ];
 
 export default function AppHeader({ marketing = false }: { marketing?: boolean }) {
@@ -58,6 +60,7 @@ export default function AppHeader({ marketing = false }: { marketing?: boolean }
             <Link href="/trade">Trade</Link>
             <Link href="/pools">Pools</Link>
             <Link href="/liquidity">Liquidity</Link>
+            <Link href="/portfolio">Portfolio</Link>
             <Link href="/analytics">Analytics</Link>
             <a href="#roadmap">Roadmap</a>
           </nav>
