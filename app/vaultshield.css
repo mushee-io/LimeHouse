@@ -150,3 +150,16 @@
 @media (prefers-reduced-motion: reduce) {
   .vs-home *, .vs-home *::before, .vs-home *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
 }
+
+/* LimeHouse DEX homepage refinements */
+.vs-brand { gap: 10px; font-family: var(--font-heading); font-weight: 800; }
+.vs-brand-name { font-size: 21px; letter-spacing: -.04em; color: #192837; }
+.vs-hero-kicker { margin: 0 0 20px; font-size: 11px; font-weight: 800; letter-spacing: .14em; color: #192837; }
+.vs-hero-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 24px; }
+.vs-secondary-link { display: inline-flex; align-items: center; gap: 10px; padding: 12px 3px; color: #192837; font-size: 14px; font-weight: 700; transition: opacity .18s ease; }
+.vs-secondary-link:hover { opacity: .65; }
+.vs-mobile-link { text-decoration: none; }
+@media (max-width: 640px) {
+  .vs-brand-name { font-size: 20px; }
+  .vs-hero-kicker { max-width: 310px; line-height: 1.55; }
+}

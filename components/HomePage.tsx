@@ -3,9 +3,16 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowRightCircle, Fingerprint, LockKeyhole, Menu, X, Zap } from "lucide-react";
+import { ArrowLeftRight, ArrowRightCircle, BarChart3, Layers3, Menu, X, Zap } from "lucide-react";
+import LimeLogo from "@/components/LimeLogo";
 
-const navigation = ["Vault", "Plans", "Install", "News", "Help"] as const;
+const navigation = [
+  { label: "Trade", href: "/trade" },
+  { label: "Swap", href: "/swap" },
+  { label: "Pools", href: "/pools" },
+  { label: "Liquidity", href: "/liquidity" },
+  { label: "Analytics", href: "/analytics" }
+] as const;
 const ease = [0.22, 1, 0.36, 1] as const;
 const videoUrl = "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260518_003132_8b7edcb6-c64d-4a52-a9ca-879942e122ad.mp4";
 
@@ -16,59 +23,33 @@ function fadeUp(index: number) {
   };
 }
 
-function VaultLogo() {
+function Brand({ onClick }: { onClick?: () => void }) {
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="32"
-      height="32"
-      fill="none"
-      overflow="visible"
-      viewBox="0 0 256 256"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <path
-        d="M 64 128 L 64.5 128 L 32 95 L 0 64 L 0 0 L 64 0 L 128 64 L 128 64.5 L 161 32 L 192 0 L 256 0 L 256 64 L 192 128 L 128 128 L 128 192 L 96 223 L 63.5 256 L 0 256 L 0 192 Z M 256 192 L 224 223 L 191.5 256 L 128 256 L 128 192 L 192 128 L 256 128 Z"
-        fill="#192837"
-      />
-    </svg>
+    <Link href="/" className="vs-brand" aria-label="LimeHouse homepage" onClick={onClick}>
+      <LimeLogo compact />
+      <span className="vs-brand-name">LimeHouse</span>
+    </Link>
   );
 }
 
 export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [dialog, setDialog] = useState<string | null>(null);
   const menuCloseRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!menuOpen) return;
-    const previous = document.body.style.overflow;
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     menuCloseRef.current?.focus();
-    const onEscape = (event: KeyboardEvent) => {
+    const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") setMenuOpen(false);
     };
-    window.addEventListener("keydown", onEscape);
+    window.addEventListener("keydown", handleEscape);
     return () => {
-      document.body.style.overflow = previous;
-      window.removeEventListener("keydown", onEscape);
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleEscape);
     };
   }, [menuOpen]);
-
-  useEffect(() => {
-    if (!dialog) return;
-    const onEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setDialog(null);
-    };
-    window.addEventListener("keydown", onEscape);
-    return () => window.removeEventListener("keydown", onEscape);
-  }, [dialog]);
-
-  const openNotice = (label: string) => {
-    setMenuOpen(false);
-    setDialog(label);
-  };
 
   return (
     <main className="vs-home relative min-h-screen w-full overflow-hidden">
@@ -82,33 +63,22 @@ export default function HomePage() {
         preload="metadata"
         aria-hidden="true"
       />
-      <div className="vs-video-tint absolute inset-0 pointer-events-none" aria-hidden="true" />
+      <div className="vs-video-tint pointer-events-none absolute inset-0" aria-hidden="true" />
 
       <header className="vs-nav relative z-10 mx-auto flex w-full max-w-[1280px] items-center justify-between px-5 py-4 sm:px-8 sm:py-5">
-        <Link href="/" className="vs-brand" aria-label="VaultShield home">
-          <VaultLogo />
-        </Link>
+        <Brand />
 
-        <nav className="hidden items-center gap-8 md:flex" aria-label="Main navigation">
-          {navigation.map((label) => (
-            <button
-              key={label}
-              type="button"
-              className="vs-nav-link text-sm font-medium"
-              onClick={() => openNotice(label)}
-            >
-              {label}
-            </button>
+        <nav className="hidden items-center gap-7 md:flex" aria-label="Main navigation">
+          {navigation.map((item) => (
+            <Link key={item.href} href={item.href} className="vs-nav-link text-sm font-medium">
+              {item.label}
+            </Link>
           ))}
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          <button type="button" className="vs-nav-cta vs-nav-cta-primary" onClick={() => openNotice("Start For Free")}>
-            Start For Free
-          </button>
-          <button type="button" className="vs-nav-cta vs-nav-cta-light" onClick={() => openNotice("Sign In")}>
-            Sign In
-          </button>
+          <Link href="/trade" className="vs-nav-cta vs-nav-cta-primary">Explore DEX</Link>
+          <Link href="/pools" className="vs-nav-cta vs-nav-cta-light">View Pools</Link>
         </div>
 
         <button
@@ -123,8 +93,17 @@ export default function HomePage() {
         </button>
       </header>
 
-      <section id="vault" className="vs-hero relative z-[1] mx-auto w-full max-w-[1280px] px-5 sm:px-8" aria-labelledby="vs-hero-title">
+      <section className="vs-hero relative z-[1] mx-auto w-full max-w-[1280px] px-5 sm:px-8" aria-labelledby="vs-hero-title">
         <div className="vs-hero-copy max-w-[560px]">
+          <motion.p
+            className="vs-hero-kicker"
+            variants={fadeUp(0)}
+            initial="hidden"
+            animate="visible"
+          >
+            THE ULTRA-NATIVE DECENTRALIZED EXCHANGE
+          </motion.p>
+
           <motion.h1
             id="vs-hero-title"
             className="vs-hero-title"
@@ -133,28 +112,31 @@ export default function HomePage() {
             animate="visible"
           >
             <Zap className="vs-inline-icon" aria-hidden="true" />{" "}
-            Lock Down Your Passwords{" "}
-            <LockKeyhole className="vs-inline-icon" aria-hidden="true" />{" "}
-            with Ironclad Security{" "}
-            <Fingerprint className="vs-inline-icon" aria-hidden="true" />
+            Trade, Swap &amp; Explore{" "}
+            <ArrowLeftRight className="vs-inline-icon" aria-hidden="true" />{" "}
+            DeFi on Ultra with LimeHouse{" "}
+            <Layers3 className="vs-inline-icon" aria-hidden="true" />
           </motion.h1>
 
           <motion.p className="vs-hero-subtext" variants={fadeUp(1)} initial="hidden" animate="visible">
-            Zero stress, total control. VaultShield keeps you covered with unbreakable storage, one-tap access, and pro-grade tools for your non-stop world.
+            Your gateway to liquidity on Ultra. Swap tokens, explore pools, and manage your onchain portfolio — all through one seamless decentralized trading experience.
           </motion.p>
 
-          <motion.div variants={fadeUp(2)} initial="hidden" animate="visible">
-            <motion.button
-              type="button"
-              className="vs-hero-cta"
-              whileHover={{ scale: 1.04, filter: "brightness(1.1)" }}
-              whileTap={{ scale: 0.96 }}
-              transition={{ duration: 0.2 }}
-              onClick={() => openNotice("Get It Free")}
-            >
-              <span>Get It Free</span>
-              <ArrowRightCircle size={20} strokeWidth={1.8} aria-hidden="true" />
-            </motion.button>
+          <motion.div
+            className="vs-hero-actions"
+            variants={fadeUp(2)}
+            initial="hidden"
+            animate="visible"
+          >
+            <motion.div whileHover={{ scale: 1.04, filter: "brightness(1.1)" }} whileTap={{ scale: 0.96 }} transition={{ duration: 0.2 }}>
+              <Link href="/trade" className="vs-hero-cta">
+                <span>Explore LimeHouse</span>
+                <ArrowRightCircle size={20} strokeWidth={1.8} aria-hidden="true" />
+              </Link>
+            </motion.div>
+            <Link href="/pools" className="vs-secondary-link">
+              Explore Pools <BarChart3 size={17} aria-hidden="true" />
+            </Link>
           </motion.div>
         </div>
       </section>
@@ -182,7 +164,7 @@ export default function HomePage() {
               exit={{ x: "100%", transition: { ease, duration: 0.35 } }}
             >
               <div className="flex items-center justify-between px-7 py-7">
-                <Link href="/" aria-label="VaultShield home" onClick={() => setMenuOpen(false)}><VaultLogo /></Link>
+                <Brand onClick={() => setMenuOpen(false)} />
                 <button
                   ref={menuCloseRef}
                   type="button"
@@ -193,46 +175,26 @@ export default function HomePage() {
               </div>
               <div className="vs-sheet-rule" />
               <nav className="flex flex-col gap-1 px-7 py-9" aria-label="Mobile navigation links">
-                {navigation.map((label, index) => (
-                  <motion.button
-                    type="button"
-                    key={label}
-                    className="vs-mobile-link"
+                {navigation.map((item, index) => (
+                  <motion.div
+                    key={item.href}
                     initial={{ opacity: 0, x: 24 }}
                     animate={{ opacity: 1, x: 0, transition: { delay: 0.18 + index * 0.07, duration: 0.45, ease } }}
-                    onClick={() => openNotice(label)}
-                  >{label}</motion.button>
+                  >
+                    <Link
+                      href={item.href}
+                      className="vs-mobile-link"
+                      onClick={() => setMenuOpen(false)}
+                    >{item.label}</Link>
+                  </motion.div>
                 ))}
               </nav>
               <div className="mt-auto flex flex-col gap-3 px-7 pb-9">
-                <button type="button" className="vs-nav-cta vs-nav-cta-primary w-full" onClick={() => openNotice("Start For Free")}>Start For Free</button>
-                <button type="button" className="vs-nav-cta vs-nav-cta-light w-full" onClick={() => openNotice("Sign In")}>Sign In</button>
+                <Link href="/trade" className="vs-nav-cta vs-nav-cta-primary w-full" onClick={() => setMenuOpen(false)}>Explore LimeHouse</Link>
+                <Link href="/pools" className="vs-nav-cta vs-nav-cta-light w-full" onClick={() => setMenuOpen(false)}>Explore Pools</Link>
               </div>
             </motion.aside>
           </>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {dialog && (
-          <motion.div className="vs-dialog-backdrop fixed inset-0 z-[60] grid place-items-center p-5" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setDialog(null)}>
-            <motion.section
-              className="vs-dialog relative w-full max-w-[420px]"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="vs-dialog-title"
-              initial={{ opacity: 0, y: 18, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1, transition: { duration: 0.26, ease } }}
-              exit={{ opacity: 0, y: 12, scale: 0.97 }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              <button className="vs-close-button absolute right-5 top-5" type="button" aria-label="Close dialog" onClick={() => setDialog(null)}><X size={22} /></button>
-              <VaultLogo />
-              <h2 id="vs-dialog-title" className="vs-dialog-title">{dialog}</h2>
-              <p>VaultShield&apos;s landing page is ready. This feature is not connected to an account or password vault yet.</p>
-              <button type="button" className="vs-nav-cta vs-nav-cta-primary mt-6" onClick={() => setDialog(null)}>Got it</button>
-            </motion.section>
-          </motion.div>
         )}
       </AnimatePresence>
     </main>

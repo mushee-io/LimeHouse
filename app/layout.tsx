@@ -3,9 +3,9 @@ import "./globals.css";
 import "./vaultshield.css";
 
 export const metadata: Metadata = {
-  title: "LimeBay — Professional DeFi on Ultra",
-  description: "Trade UOS and LIME, explore liquidity, and use LimeBay on Ultra Testnet.",
-  keywords: ["LimeBay", "Ultra", "DEX", "AMM", "DeFi", "UOS", "LIME", "liquidity"]
+  title: "LimeHouse — Decentralized Exchange on Ultra",
+  description: "Trade and swap tokens, explore liquidity pools, and use LimeHouse on Ultra.",
+  keywords: ["LimeHouse", "Ultra", "DEX", "AMM", "DeFi", "UOS", "LIME", "liquidity"]
 };
 
 export default function RootLayout({

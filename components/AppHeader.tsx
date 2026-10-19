@@ -48,7 +48,7 @@ export default function AppHeader({ marketing = false }: { marketing?: boolean }
       <header className="lb-marketing-nav">
         <Link href="/" className="lb-marketing-brand">
           <LimeLogo />
-          <span>LimeBay</span>
+          <span>LimeHouse</span>
         </Link>
         <nav>
           <a href="#features">Features</a>
@@ -65,10 +65,10 @@ export default function AppHeader({ marketing = false }: { marketing?: boolean }
       <header className="lb-app-nav">
         <Link href="/" className="lb-app-brand">
           <span className="lb-logo-tile"><LimeLogo compact /></span>
-          <strong>LimeBay</strong>
+          <strong>LimeHouse</strong>
         </Link>
 
-        <nav className="lb-app-links" aria-label="LimeBay app navigation">
+        <nav className="lb-app-links" aria-label="LimeHouse app navigation">
           {LINKS.map((item) => (
             <Link
               key={item.href}
