@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import "./vaultshield.css";
+import "./dex.css";
+import { WalletProvider } from "@/components/WalletProvider";
 
 export const metadata: Metadata = {
   title: "LimeHouse — Decentralized Exchange on Ultra",
@@ -21,7 +23,7 @@ export default function RootLayout({
           href="https://db.onlinewebfonts.com/c/04e6981992c0e2e7642af2074ebe3901?family=Helvetica+Now+Display+Bold"
         />
       </head>
-      <body>{children}</body>
+      <body><WalletProvider>{children}</WalletProvider></body>
     </html>
   );
 }

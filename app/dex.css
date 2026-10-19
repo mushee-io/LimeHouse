@@ -1,0 +1,141 @@
+/* LimeHouse DEX — clean, Uniswap-inspired trading layout, with LimeHouse identity. */
+.lh-dex {
+  --lh-ink: #181b19;
+  --lh-muted: #7e8582;
+  --lh-stroke: #e8eae7;
+  --lh-accent: #c5f15e;
+  --lh-accent-hover: #b6e94a;
+  position: relative;
+  min-height: 100vh;
+  overflow: visible;
+  background: #fff;
+  color: var(--lh-ink);
+  font-family: Inter, Arial, sans-serif;
+}
+.lh-dex * { box-sizing: border-box; }
+.lh-topbar {
+  position: relative;
+  z-index: 45;
+  width: 100%;
+  min-height: 94px;
+  padding: 18px 25px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  background: #fff;
+  color: #262827;
+}
+.lh-topbar-left,.lh-header-actions { display: flex; align-items: center; gap: 28px; }
+.lh-logo-link { display: flex; align-items: center; gap: 9px; white-space: nowrap; font-size: 17px; font-weight: 800; letter-spacing: -.045em; }
+.lh-logo-link .lime-logo { width: 29px; height: 29px; flex-basis: 29px; }
+.lh-logo-link svg { color: #8e9691; }
+.lh-main-nav { display: flex; align-items: center; gap: 25px; }
+.lh-main-nav a { padding: 12px 0; font-size: 17px; font-weight: 550; white-space: nowrap; color: #747874; transition: color .18s ease; }
+.lh-main-nav a:hover,.lh-main-nav a.active { color: #171a17; }
+.lh-main-nav a.active { font-weight: 700; }
+.lh-header-actions { gap: 13px; }
+.lh-network-tag { padding: 6px 10px; border-radius: 999px; background: #f4f6f0; color: #717871; font-size: 11px; white-space: nowrap; }
+.lh-icon-button { width: 36px; height: 36px; padding: 0; border: 0; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; color: #868b87; background: transparent; cursor: pointer; transition: color .18s ease, background .18s ease; }
+.lh-icon-button:hover,.lh-icon-button.active { color: #252a26; background: #f5f5f5; }
+.lh-header-connect { display: inline-flex; align-items: center; justify-content: center; min-height: 43px; padding: 0 20px; border: 0; border-radius: 15px; background: var(--lh-accent, #c5f15e); color: #233119; font-size: 14px; font-weight: 750; cursor: pointer; transition: background .2s ease; white-space: nowrap; }
+.lh-header-connect:hover { background: #b6e94a; }
+.lh-header-connect:disabled { cursor: wait; opacity: .6; }
+.lh-mobile-menu-button { display: none; width: 36px; height: 36px; border: 0; background: transparent; align-items: center; justify-content: center; cursor: pointer; }
+.lh-header-popover { position: absolute; top: calc(100% - 5px); right: 24px; z-index: 100; border: 1px solid #eceeeb; border-radius: 18px; background: #fff; box-shadow: 0 15px 50px rgba(17,25,13,.12); }
+.lh-header-search { width: min(390px, calc(100vw - 32px)); padding: 18px; }
+.lh-header-search label { display: block; margin-bottom: 9px; color: #777; font-size: 12px; }
+.lh-header-search input { display: block; width: 100%; padding: 13px; border: 1px solid #dce0db; border-radius: 12px; background: #fff; color: #111; outline-color: #a3ce32; }
+.lh-search-results { display: flex; flex-direction: column; max-height: 280px; overflow: auto; margin-top: 9px; }
+.lh-search-results a,.lh-header-more a { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 11px 13px; border-radius: 9px; color: #424942; font-size: 13px; }
+.lh-search-results a:hover,.lh-header-more a:hover { background: #f4f7ed; }
+.lh-no-results { padding: 14px; color: #828781; font-size: 12px; }
+.lh-header-more { min-width: 205px; padding: 10px; }
+.lh-menu-mobile-only { display: none; }
+.lh-header-more .lh-menu-analytics { justify-content: flex-start; border-top: 1px solid #edf0e9; border-radius: 0; margin-top: 6px; }
+.lh-wallet-notice { position: absolute; z-index: 80; right: 26px; top: 90px; display: flex; align-items: center; gap: 16px; max-width: min(440px, calc(100vw - 36px)); padding: 14px; border: 1px solid #f4cece; border-radius: 14px; background: #fff7f7; box-shadow: 0 12px 40px rgba(0,0,0,.08); color: #712c2c; font-size: 12px; }
+.lh-wallet-notice button { border: 0; background: transparent; cursor: pointer; }
+.lh-dex-center { width: min(576px, calc(100% - 28px)); min-height: calc(100dvh - 150px); margin: 0 auto; padding: clamp(80px, 11vh, 138px) 0 70px; }
+.lh-dex-footnote { margin: 22px 0 0; text-align: center; color: #a0a4a0; font-size: 11px; }
+.lh-swap { width: 100%; color: #202420; }
+.lh-swap-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 5px 7px; }
+.lh-swap-tabs { display: flex; align-items: center; gap: 11px; }
+.lh-swap-tabs button { min-height: 42px; padding: 0 14px; border: 0; border-radius: 999px; background: transparent; color: #686e6a; font-size: 16px; cursor: pointer; }
+.lh-swap-tabs button.active { background: #eeeeee; color: #131913; font-weight: 700; }
+.lh-swap-tabs button:hover:not(.active) { background: #f6f7f6; }
+.lh-swap-tools { display: flex; gap: 4px; align-items: center; }
+.lh-swap-settings { display: flex; gap: 18px; align-items: center; justify-content: space-between; margin-bottom: 10px; padding: 18px; border: 1px solid #eceeeb; border-radius: 17px; background: #fff; }
+.lh-swap-settings > div { display: flex; flex-direction: column; gap: 4px; }
+.lh-swap-settings strong { font-size: 13px; }
+.lh-swap-settings span { color: #8b918c; font-size: 11px; }
+.lh-swap-settings label { display: flex; align-items: center; gap: 9px; color: #697169; font-size: 12px; }
+.lh-swap-settings select { padding: 9px; border: 1px solid #dcdedb; border-radius: 9px; background: #fff; }
+.lh-swap-fields { position: relative; }
+.lh-swap-field { position: relative; min-height: 162px; padding: 19px 20px 16px; border-radius: 23px; }
+.lh-swap-sell { z-index: 1; border: 1px solid #e8eae8; background: #fff; }
+.lh-swap-buy { margin-top: 4px; border: 1px solid #f7f7f7; background: #f7f7f7; }
+.lh-field-label { margin-bottom: 10px; font-size: 16px; color: #535a54; }
+.lh-field-content { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; }
+.lh-field-content input { width: 100%; min-width: 0; padding: 0; border: 0; outline: 0; background: transparent; font-family: inherit; color: #171a17; font-size: clamp(30px, 6vw, 41px); font-weight: 450; letter-spacing: -.035em; }
+.lh-field-content input::placeholder { color: #a9aca9; opacity: 1; }
+.lh-output { display: block; min-width: 0; max-width: 60%; overflow: hidden; text-overflow: ellipsis; font-size: clamp(30px, 6vw, 41px); line-height: 1.3; letter-spacing: -.04em; color: #a1a5a1; }
+.lh-output.unavailable { font-size: 33px; }
+.lh-field-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 4px; gap: 8px; font-size: 12px; color: #949b95; }
+.lh-token-picker { position: relative; flex: 0 0 auto; }
+.lh-token-trigger { display: inline-flex; min-width: 122px; min-height: 43px; align-items: center; justify-content: center; gap: 6px; padding: 4px 10px 4px 5px; border: 1px solid #e8ebe8; border-radius: 999px; background: #fff; color: #171b17; font-size: 17px; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,.02); }
+.lh-token-trigger strong { font-weight: 700; }
+.lh-token-icon { display: inline-flex; width: 31px; height: 31px; flex: 0 0 31px; align-items: center; justify-content: center; border-radius: 50%; font-weight: 800; font-size: 15px; }
+.lh-token-uos { color: #fff; background: #161917; }
+.lh-token-lime { background: #e0f9a0; }
+.lh-token-lime .lime-logo { width: 24px; height: 24px; flex-basis: 24px; }
+.lh-token-list { position: absolute; z-index: 30; top: calc(100% + 8px); right: 0; min-width: 215px; padding: 8px; border: 1px solid #e8eae8; border-radius: 15px; background: #fff; box-shadow: 0 20px 40px rgba(0,0,0,.13); }
+.lh-token-list-title { padding: 9px 10px; color: #949a94; font-size: 11px; }
+.lh-token-list button { display: flex; align-items: center; width: 100%; gap: 10px; padding: 9px; border: 0; border-radius: 9px; background: transparent; cursor: pointer; text-align: left; }
+.lh-token-list button:hover { background: #f2f5ec; }
+.lh-token-list button > span:nth-child(2) { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.lh-token-list small { color: #909790; font-size: 11px; }
+.lh-flip-button { position: absolute; z-index: 4; top: 142px; left: 50%; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; padding: 0; transform: translate(-50%, 0); border: 4px solid #fff; border-radius: 17px; background: #f7f7f7; color: #212621; cursor: pointer; }
+.lh-flip-button:hover { background: #e9f0dc; }
+.lh-swap-submit { width: 100%; min-height: 64px; margin-top: 5px; border: 0; border-radius: 22px; background: #eafaD1; color: #588330; font-family: inherit; font-size: 19px; font-weight: 700; cursor: pointer; transition: filter .15s ease, background .15s ease; }
+.lh-swap-submit:hover { filter: brightness(.96); }
+.lh-swap-submit:disabled { opacity: .6; cursor: wait; }
+.lh-swap-meta { margin-top: 16px; padding: 14px 15px; border: 1px solid #eff0ed; border-radius: 16px; background: #fcfdf9; }
+.lh-swap-meta > div { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 8px 0; color: #777c77; font-size: 12px; }
+.lh-swap-meta strong { color: #353b34; text-align: right; }
+.lh-swap-meta p { margin: 7px 0; color: #677265; font-size: 12px; line-height: 1.55; }
+.lh-mode-coming { min-height: 350px; display: flex; flex-direction: column; align-items: flex-start; justify-content: center; padding: 32px; border: 1px solid #e9ece6; border-radius: 24px; background: #f8faf5; }
+.lh-mode-coming > span { font-size: 11px; font-weight: 800; color: #64862a; letter-spacing: .14em; }
+.lh-mode-coming h2 { margin: 15px 0 0; font-size: 33px; letter-spacing: -.04em; }
+.lh-mode-coming p { max-width: 380px; color: #687267; font-size: 14px; line-height: 1.65; }
+.lh-mode-coming button { display: inline-flex; align-items: center; gap: 10px; min-height: 45px; margin-top: 16px; padding: 0 20px; border: 0; border-radius: 999px; background: #c5f15e; font-weight: 700; cursor: pointer; }
+.lh-dex a:focus-visible,.lh-dex button:focus-visible,.lh-dex input:focus-visible { outline: 2px solid #779d30; outline-offset: 2px; }
+@media(max-width:1080px) {
+  .lh-main-nav { gap: 15px; }
+  .lh-main-nav a { font-size: 15px; }
+  .lh-topbar-left { gap: 18px; }
+  .lh-network-tag { display: none; }
+}
+@media(max-width:820px) {
+  .lh-topbar { min-height: 74px; padding: 13px 16px; }
+  .lh-main-nav { display: none; }
+  .lh-topbar-left { gap: 10px; }
+  .lh-header-actions { gap: 5px; }
+  .lh-mobile-menu-button { display: inline-flex; }
+  .lh-menu-mobile-only { display: flex; flex-direction: column; margin-bottom: 7px; padding-bottom: 6px; border-bottom: 1px solid #edf0e9; }
+  .lh-header-more { right: 10px; }
+  .lh-dex-center { padding-top: clamp(60px, 10vh, 100px); }
+}
+@media(max-width:490px) {
+  .lh-logo-link { font-size: 15px; gap: 7px; }
+  .lh-logo-link .lime-logo { width: 26px; height: 26px; flex-basis: 26px; }
+  .lh-header-connect { min-height: 39px; padding: 0 13px; font-size: 12px; }
+  .lh-header-actions > .lh-icon-button:nth-of-type(2) { display: none; }
+  .lh-dex-center { width: calc(100% - 20px); padding-top: 60px; }
+  .lh-swap-tabs { gap: 1px; }
+  .lh-swap-tabs button { padding: 0 11px; font-size: 14px; }
+  .lh-swap-tools { gap: 0; }
+  .lh-swap-tools .lh-icon-button { width: 30px; }
+  .lh-swap-field { padding: 17px 15px 15px; }
+  .lh-token-trigger { min-width: 106px; font-size: 14px; }
+  .lh-field-foot { font-size: 11px; }
+}

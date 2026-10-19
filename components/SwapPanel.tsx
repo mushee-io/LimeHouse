@@ -1,7 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
+import { ArrowDown, ArrowLeftRight, ChartNoAxesCombined, Check, ChevronDown, Settings2 } from "lucide-react";
 import LimeLogo from "@/components/LimeLogo";
+import { useUltraWallet } from "@/components/WalletProvider";
 import { LIMEB_CONTRACT, LIME_TOKEN_CONTRACT } from "@/lib/config";
 import {
   decimalToUnits,
@@ -11,58 +14,49 @@ import {
   quotePool,
   unitsToAsset
 } from "@/lib/ultraRpc";
-import { connectUltraWallet, signUltraTransaction } from "@/lib/ultraWallet";
+import { signUltraTransaction } from "@/lib/ultraWallet";
 
 type Token = {
   symbol: "UOS" | "LIME";
   name: string;
   precision: number;
 };
+type Mode = "Swap" | "Limit" | "Buy" | "Sell";
 
 const TOKENS: Token[] = [
   { symbol: "UOS", name: "Ultra", precision: 8 },
-  { symbol: "LIME", name: "LimeBay", precision: 6 }
+  { symbol: "LIME", name: "LimeHouse", precision: 6 }
 ];
 
 function TokenIcon({ token }: { token: Token }) {
   return token.symbol === "UOS" ? (
-    <span className="app-token-icon uos">U</span>
+    <span className="lh-token-icon lh-token-uos">U</span>
   ) : (
-    <span className="app-token-icon lime"><LimeLogo compact /></span>
+    <span className="lh-token-icon lh-token-lime"><LimeLogo compact /></span>
   );
 }
 
-function Picker({
-  value,
-  exclude,
-  onChange
-}: {
-  value: Token;
-  exclude: string;
-  onChange: (token: Token) => void;
-}) {
+function Picker({ value, onChange }: { value: Token; onChange: (token: Token) => void }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="app-token-picker-wrap">
-      <button type="button" className="app-token-picker" onClick={() => setOpen((v) => !v)}>
-        <TokenIcon token={value} />
-        <strong>{value.symbol}</strong>
-        <span>⌄</span>
+    <div className="lh-token-picker">
+      <button type="button" className="lh-token-trigger" aria-expanded={open} aria-label={`Select token, currently ${value.symbol}`} onClick={() => setOpen(!open)}>
+        <TokenIcon token={value} /><strong>{value.symbol}</strong><ChevronDown size={19} aria-hidden="true" />
       </button>
       {open && (
-        <div className="app-token-menu">
-          {TOKENS.filter((token) => token.symbol !== exclude).map((token) => (
+        <div className="lh-token-list" role="menu" aria-label="Select a token">
+          <div className="lh-token-list-title">Tokens on Ultra Testnet</div>
+          {TOKENS.map((token) => (
             <button
               key={token.symbol}
               type="button"
-              onClick={() => {
-                onChange(token);
-                setOpen(false);
-              }}
+              role="menuitem"
+              onClick={() => { onChange(token); setOpen(false); }}
             >
               <TokenIcon token={token} />
               <span><strong>{token.symbol}</strong><small>{token.name}</small></span>
+              {value.symbol === token.symbol && <Check size={16} aria-label="Selected" />}
             </button>
           ))}
         </div>
@@ -81,14 +75,16 @@ function hasLiquidity(pool: PoolRow | null) {
 }
 
 export default function SwapPanel({ compact = false }: { compact?: boolean }) {
+  const { account, busy: walletBusy, connect } = useUltraWallet();
   const [pool, setPool] = useState<PoolRow | null>(null);
   const [tokenIn, setTokenIn] = useState<Token>(TOKENS[0]);
   const [tokenOut, setTokenOut] = useState<Token>(TOKENS[1]);
   const [amount, setAmount] = useState("");
-  const [account, setAccount] = useState("");
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [slippage, setSlippage] = useState("0.5");
+  const [mode, setMode] = useState<Mode>("Swap");
+  const [showSettings, setShowSettings] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
@@ -122,7 +118,7 @@ export default function SwapPanel({ compact = false }: { compact?: boolean }) {
   }, [amount, pool, tokenIn.symbol]);
 
   const estimate = useMemo(() => {
-    if (!amount) return "";
+    if (!amount) return "0";
     if (!quote || quote.output <= 0n) return "—";
     return Number(
       unitsToAsset(quote.output, quote.outputAsset.precision, quote.outputAsset.symbol).split(" ")[0]
@@ -144,36 +140,55 @@ export default function SwapPanel({ compact = false }: { compact?: boolean }) {
     }
   }, [pool, liquid]);
 
-  async function connect() {
-    setBusy(true);
+  function chooseMode(nextMode: Mode) {
+    setMode(nextMode);
     setNotice("");
-    try {
-      const data = await connectUltraWallet();
-      setAccount(data.blockchainid);
-    } catch (error) {
-      setNotice(
-        error && typeof error === "object" && "message" in error
-          ? String((error as { message?: unknown }).message)
-          : "Ultra Wallet could not connect."
-      );
-    } finally {
-      setBusy(false);
+    if (nextMode === "Buy") {
+      setTokenIn(TOKENS[0]);
+      setTokenOut(TOKENS[1]);
     }
+    if (nextMode === "Sell") {
+      setTokenIn(TOKENS[1]);
+      setTokenOut(TOKENS[0]);
+    }
+  }
+
+  function selectInput(token: Token) {
+    if (token.symbol === tokenOut.symbol) setTokenOut(tokenIn);
+    setTokenIn(token);
+  }
+
+  function selectOutput(token: Token) {
+    if (token.symbol === tokenIn.symbol) setTokenIn(tokenOut);
+    setTokenOut(token);
+  }
+
+  function flip() {
+    setTokenIn(tokenOut);
+    setTokenOut(tokenIn);
+    if (mode === "Buy") setMode("Sell");
+    else if (mode === "Sell") setMode("Buy");
+    setNotice("");
   }
 
   async function execute() {
     if (!account) {
-      await connect();
+      try {
+        await connect();
+        setNotice("");
+      } catch (error) {
+        setNotice(error instanceof Error ? error.message : "Ultra Wallet could not connect.");
+      }
       return;
     }
 
     if (!pool || !pool.enabled || !liquid) {
-      setNotice("Pool 0 is unavailable.");
+      setNotice("Pool 0 is not currently available for swapping on Ultra Testnet.");
       return;
     }
 
     if (!quote || quote.output <= 0n) {
-      setNotice("Enter a valid amount.");
+      setNotice("Enter a valid amount to receive a live quote.");
       return;
     }
 
@@ -185,7 +200,7 @@ export default function SwapPanel({ compact = false }: { compact?: boolean }) {
       const minOut = unitsToAsset(minOutUnits, quote.outputAsset.precision, quote.outputAsset.symbol);
 
       setBusy(true);
-      setNotice("Approve the LimeBay swap in Ultra Wallet.");
+      setNotice("Approve the LimeHouse swap in Ultra Wallet.");
 
       const response = await signUltraTransaction([
         {
@@ -195,7 +210,7 @@ export default function SwapPanel({ compact = false }: { compact?: boolean }) {
             from: account,
             to: LIMEB_CONTRACT,
             quantity: amountIn,
-            memo: "LimeBay swap deposit"
+            memo: "LimeHouse swap deposit"
           }
         },
         {
@@ -219,86 +234,101 @@ export default function SwapPanel({ compact = false }: { compact?: boolean }) {
       setAmount("");
       await refresh();
     } catch (error) {
-      setNotice(
-        error && typeof error === "object" && "message" in error
-          ? String((error as { message?: unknown }).message)
-          : "Swap was not completed."
-      );
+      setNotice(error instanceof Error ? error.message : "Swap was not completed.");
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <section className={compact ? "app-swap-card compact" : "app-swap-card"}>
-      <div className="app-swap-tabs">
-        <button className="active" type="button">Swap</button>
-        <button type="button" disabled>Limit</button>
-        <button type="button" disabled>Recurring</button>
-        <span>⚙</span>
-      </div>
-
-      <div className="app-swap-field">
-        <div className="app-swap-label">
-          <span>Selling</span>
-          <span>{account ? `${account.slice(0, 5)}…${account.slice(-4)}` : "Balance —"}</span>
+    <section className={compact ? "lh-swap lh-swap-compact" : "lh-swap"} aria-label="LimeHouse swap">
+      <div className="lh-swap-toolbar">
+        <div className="lh-swap-tabs" role="tablist" aria-label="Trade mode">
+          {(["Swap", "Limit", "Buy", "Sell"] as Mode[]).map((item) => (
+            <button
+              key={item}
+              type="button"
+              role="tab"
+              aria-selected={mode === item}
+              className={mode === item ? "active" : ""}
+              onClick={() => chooseMode(item)}
+            >{item}</button>
+          ))}
         </div>
-        <div className="app-swap-row">
-          <Picker value={tokenIn} exclude={tokenOut.symbol} onChange={setTokenIn} />
-          <input
-            inputMode="decimal"
-            placeholder="0.00"
-            value={amount}
-            onChange={(event) => setAmount(event.target.value.replace(/[^0-9.]/g, ""))}
-          />
+        <div className="lh-swap-tools">
+          <Link href="/analytics" className="lh-icon-button" title="Protocol analytics" aria-label="Protocol analytics"><ChartNoAxesCombined size={22} /></Link>
+          <button type="button" className={showSettings ? "lh-icon-button active" : "lh-icon-button"} title="Swap settings" aria-label="Swap settings" aria-expanded={showSettings} onClick={() => setShowSettings(!showSettings)}><Settings2 size={22}/></button>
         </div>
       </div>
 
-      <button
-        type="button"
-        className="app-flip"
-        onClick={() => {
-          setTokenIn(tokenOut);
-          setTokenOut(tokenIn);
-        }}
-        aria-label="Switch assets"
-      >
-        ⇅
-      </button>
-
-      <div className="app-swap-field">
-        <div className="app-swap-label">
-          <span>Buying</span>
-          <span>{liquid ? "Live quote" : "Pool unavailable"}</span>
-        </div>
-        <div className="app-swap-row">
-          <Picker value={tokenOut} exclude={tokenIn.symbol} onChange={setTokenOut} />
-          <div className={estimate && estimate !== "—" ? "app-estimate" : "app-estimate muted"}>
-            {estimate || "0.00"}
+      {showSettings && (
+        <div className="lh-swap-settings" aria-label="Swap settings">
+          <div>
+            <strong>Swap settings</strong><span>Ultra Testnet · Pool 0</span>
           </div>
+          <label htmlFor="lh-slippage">Max slippage
+            <select id="lh-slippage" value={slippage} onChange={(event) => setSlippage(event.target.value)}>
+              <option value="0.1">0.1%</option><option value="0.5">0.5%</option><option value="1.0">1.0%</option>
+            </select>
+          </label>
         </div>
-      </div>
+      )}
 
-      <button className="acid-button app-swap-submit" type="button" onClick={execute} disabled={busy}>
-        {busy ? "Working…" : account ? "Review swap" : "Connect wallet"}
-      </button>
-
-      <div className="app-swap-details">
-        <div><span>Route</span><strong>{tokenIn.symbol} → {tokenOut.symbol}</strong></div>
-        <div><span>Execution price</span><strong>{ratio}</strong></div>
-        <div><span>Price impact</span><strong>Calculated on review</strong></div>
-        <div>
-          <span>Slippage</span>
-          <select value={slippage} onChange={(event) => setSlippage(event.target.value)}>
-            <option value="0.1">0.1%</option>
-            <option value="0.5">0.5%</option>
-            <option value="1.0">1.0%</option>
-          </select>
+      {mode === "Limit" ? (
+        <div className="lh-mode-coming">
+          <span>COMING SOON</span>
+          <h2>Limit orders</h2>
+          <p>Limit orders are not live on Ultra Testnet yet. You can still execute live pool swaps.</p>
+          <button type="button" onClick={() => chooseMode("Swap")}>Back to Swap <ArrowLeftRight size={16}/></button>
         </div>
-        <div><span>Pool fee</span><strong>{pool ? `${(Number(pool.fee_bps) / 100).toFixed(2)}%` : "—"}</strong></div>
-      </div>
+      ) : (
+        <>
+          <div className="lh-swap-fields">
+            <div className="lh-swap-field lh-swap-sell">
+              <div className="lh-field-label">Sell</div>
+              <div className="lh-field-content">
+                <input
+                  aria-label={`Amount to sell in ${tokenIn.symbol}`}
+                  inputMode="decimal"
+                  placeholder="0"
+                  value={amount}
+                  onChange={(event) => {
+                    const next = event.target.value;
+                    if (/^\d*(?:\.\d*)?$/.test(next)) setAmount(next);
+                  }}
+                />
+                <Picker value={tokenIn} onChange={selectInput} />
+              </div>
+              <div className="lh-field-foot"><span>Ultra Testnet</span><span>{account ? "Quote from Pool 0" : "Connect for balances"}</span></div>
+            </div>
 
-      {notice && <div className="app-inline-notice">{notice}</div>}
+            <button className="lh-flip-button" type="button" onClick={flip} aria-label="Switch sell and buy tokens">
+              <ArrowDown size={24} strokeWidth={2.2} />
+            </button>
+
+            <div className="lh-swap-field lh-swap-buy">
+              <div className="lh-field-label">Buy</div>
+              <div className="lh-field-content">
+                <output aria-live="polite" className={estimate === "—" ? "lh-output unavailable" : "lh-output"}>{estimate}</output>
+                <Picker value={tokenOut} onChange={selectOutput} />
+              </div>
+              <div className="lh-field-foot"><span>{quote ? "Live pool estimate" : liquid ? "Enter an amount for a quote" : "Pool quote unavailable"}</span></div>
+            </div>
+          </div>
+          <button className="lh-swap-submit" type="button" disabled={busy || walletBusy} onClick={execute}>
+            {busy || walletBusy ? "Working…" : account ? "Review swap" : "Connect Wallet"}
+          </button>
+          {(quote || (account && !liquid) || notice) && (
+            <div className="lh-swap-meta" aria-live="polite">
+              {quote && <div><span>Indicative price</span><strong>{ratio}</strong></div>}
+              {quote && <div><span>Pool fee</span><strong>{pool ? `${(Number(pool.fee_bps) / 100).toFixed(2)}%` : "—"}</strong></div>}
+              {quote && <div><span>Max slippage</span><strong>{slippage}%</strong></div>}
+              {account && !liquid && <p>Pool 0 currently has no available liquidity. Swaps cannot execute until liquidity is available.</p>}
+              {notice && <p role="status">{notice}</p>}
+            </div>
+          )}
+        </>
+      )}
     </section>
   );
 }
