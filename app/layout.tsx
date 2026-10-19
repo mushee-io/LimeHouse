@@ -18,6 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        <link rel="icon" type="image/webp" href="/limebay-moth.webp" />
         <link
           rel="stylesheet"
           href="https://db.onlinewebfonts.com/c/04e6981992c0e2e7642af2074ebe3901?family=Helvetica+Now+Display+Bold"

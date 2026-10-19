@@ -139,3 +139,36 @@
   .lh-token-trigger { min-width: 106px; font-size: 14px; }
   .lh-field-foot { font-size: 11px; }
 }
+
+/* 7077 moth identity — LimeBay / LimeHouse brandmark */
+.lime-logo.moth-logo,.lime-logo.moth-logo.compact {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 36px;
+  flex: 0 0 52px;
+  overflow: visible;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.lime-logo.moth-logo.compact {
+  width: 42px;
+  height: 31px;
+  flex-basis: 42px;
+}
+.lime-logo.moth-logo::after { display: none; }
+.lime-logo.moth-logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  max-width: none;
+}
+.lh-logo-link .lime-logo.moth-logo.compact { width: 48px; height: 32px; flex-basis: 48px; }
+.vs-brand .lime-logo.moth-logo.compact { width: 55px; height: 36px; flex-basis: 55px; }
+.lb-logo-tile { width: 49px; background: transparent; }
+.lh-token-lime { background: #f1f2ee; }
+.app-token-icon.lime { background: #f1f2ee; }
