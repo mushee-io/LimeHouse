@@ -1,0 +1,152 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap");
+@import "tailwindcss/theme.css";
+@import "tailwindcss/utilities.css";
+
+:root {
+  --font-heading: 'Helvetica Now Display Bold', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --color-text: #192837;
+  --color-accent: #7342E2;
+  --color-login-bg: #F2F2EE;
+}
+
+.vs-home {
+  background: #cfc8c5;
+  color: var(--color-text);
+  font-family: var(--font-body);
+  isolation: isolate;
+}
+.vs-video-tint {
+  background: linear-gradient(90deg, rgba(225, 220, 215, .28) 0%, rgba(229, 222, 218, .14) 45%, rgba(229, 222, 218, .04) 100%);
+}
+.vs-brand { display: inline-flex; align-items: center; justify-content: center; }
+.vs-nav-link {
+  border: 0;
+  background: transparent;
+  color: #192837;
+  opacity: .9;
+  cursor: pointer;
+  transition: opacity .18s ease;
+}
+.vs-nav-link:hover { opacity: .55; }
+.vs-nav-cta {
+  display: inline-flex;
+  min-height: 42px;
+  justify-content: center;
+  align-items: center;
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 20px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform .2s ease, filter .2s ease;
+}
+.vs-nav-cta:hover { transform: translateY(-1px); filter: brightness(1.07); }
+.vs-nav-cta-primary { background: #7342E2; color: white; }
+.vs-nav-cta-light { background: #F2F2EE; color: #192837; }
+.vs-menu-trigger,.vs-close-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  background: transparent;
+  color: #192837;
+  cursor: pointer;
+}
+.vs-menu-trigger { width: 42px; height: 42px; }
+.vs-close-button { width: 36px; height: 36px; }
+.vs-hero { padding-top: clamp(40px, 8vw, 72px); padding-bottom: 104px; }
+.vs-hero-title {
+  margin: 0 0 24px;
+  max-width: 560px;
+  color: #192837;
+  font-family: var(--font-heading);
+  font-size: clamp(1.65rem, 5vw, 3rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -.01em;
+  text-transform: none;
+}
+.vs-inline-icon {
+  position: relative;
+  top: -2px;
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  vertical-align: middle;
+  color: #192837;
+  stroke-width: 2;
+}
+.vs-hero-subtext {
+  margin: 0 0 32px;
+  max-width: 560px;
+  font-size: clamp(.9rem, 2.5vw, 1.1rem);
+  line-height: 1.65;
+  opacity: .8;
+}
+.vs-hero-cta {
+  display: flex;
+  min-width: 210px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  padding: 17px 24px;
+  border: 0;
+  border-radius: 50px;
+  background: #7342E2;
+  color: white;
+  font-family: var(--font-body);
+  font-size: clamp(.9rem, 2vw, 1rem);
+  font-weight: 600;
+  box-shadow: 0 4px 24px rgba(115, 66, 226, .28);
+  cursor: pointer;
+}
+.vs-mobile-backdrop {
+  border: 0;
+  background: rgba(25, 40, 55, .35);
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+}
+.vs-mobile-sheet {
+  width: min(88vw, 360px);
+  height: 100dvh;
+  background: #cfc8c5;
+  color: #192837;
+  box-shadow: -12px 0 48px rgba(25, 40, 55, .18);
+}
+.vs-sheet-rule { height: 1px; margin: 0 28px; background: rgba(25,40,55,.22); }
+.vs-mobile-link {
+  display: block;
+  width: 100%;
+  padding: 12px 0;
+  border: 0;
+  background: transparent;
+  color: #192837;
+  font-family: var(--font-heading);
+  font-size: clamp(25px, 7vw, 32px);
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+.vs-mobile-link:hover { opacity: .65; }
+.vs-dialog-backdrop { background: rgba(25,40,55,.45); backdrop-filter: blur(5px); }
+.vs-dialog {
+  padding: 30px;
+  border-radius: 22px;
+  background: #f2f2ee;
+  color: #192837;
+  box-shadow: 0 24px 64px rgba(25,40,55,.2);
+}
+.vs-dialog-title { margin: 24px 0 10px; font-family: var(--font-heading); font-size: 27px; line-height: 1.1; }
+.vs-dialog p { margin: 0; font-size: 14px; line-height: 1.65; opacity: .75; }
+.vs-home button:focus-visible,.vs-home a:focus-visible { outline: 2px solid #7342E2; outline-offset: 4px; }
+@media (max-width: 640px) {
+  .vs-video-tint { background: rgba(222, 217, 213, .35); }
+  .vs-hero { padding-top: clamp(40px, 10vw, 72px); }
+  .vs-hero-subtext { max-width: 410px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vs-home *, .vs-home *::before, .vs-home *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+}
